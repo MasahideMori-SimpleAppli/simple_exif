@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'exif_handler.dart';
+import 'exif_tag.dart';
 
 /// (en) 画像のExifデータを書き換えるクラスです。
 ///
@@ -25,8 +26,10 @@ class ExifWriter {
   /// このメソッドは、連続的な操作のために内部的に保持するExif情報だけを更新し、
   /// ファイル本体の情報は更新しません。
   /// 編集後のファイルを得るにはsaveメソッドを呼び出してください。
-  void updateTag(String tag, dynamic value) {
-    _handler.updateTag(tag, value);
+  ///
+  /// * [tag] : For type safety, pass overriding data in a dedicated class.
+  void updateTag(ExifTag tag) {
+    _handler.updateTag(tag);
   }
 
   /// (en) Deletes the content of the specified tag.
@@ -39,8 +42,10 @@ class ExifWriter {
   /// このメソッドは、連続的な操作のために内部的に保持するExif情報だけを更新し、
   /// ファイル本体の情報は更新しません。
   /// 編集後のファイルを得るにはsaveメソッドを呼び出してください。
-  void removeTag(String tag) {
-    _handler.removeTag(tag);
+  ///
+  /// * [tagName] : Target tag name.
+  void removeTag(String tagName) {
+    _handler.removeTag(tagName);
   }
 
   /// (en) Delete all Exif data.

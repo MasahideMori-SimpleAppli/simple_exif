@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'exif_tag.dart';
+
 /// (en) This is an inner class that analyzes, stores and
 /// manipulates the entire Exif data.
 /// This class may only be called from within this package.
@@ -34,24 +36,27 @@ class ExifHandler {
   ///
   /// (ja) 指定したタグの内容を返します。
   ///
-  /// * [tag] : The target tag.
-  dynamic getTagValue(String tag) {
-    return _exifData[tag];
+  /// * [tagName] : Target tag name.
+  dynamic getTagValue(String tagName) {
+    return _exifData[tagName];
   }
 
   /// (en) Rewrites the content of the specified tag.
   ///
   /// (ja) 指定したタグの内容を書き換えます。
-  void updateTag(String tag, dynamic value) {
-    // TODO 標準タグについては、データ型の検証が必要。
-
+  ///
+  /// * [tag] : For type safety, pass overriding data in a dedicated class.
+  void updateTag(ExifTag tag) {
+    _exifData[tag.tagName] = tag.value;
   }
 
   /// (en) Remove the content of the specified tag.
   ///
   /// (ja) 指定したタグの内容を削除します。
-  void removeTag(String tag){
-    _exifData.remove(tag);
+  ///
+  /// * [tagName] : The tag name.
+  void removeTag(String tagName){
+    _exifData.remove(tagName);
   }
 
   /// (en) Delete all Exif data.

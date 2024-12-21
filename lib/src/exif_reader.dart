@@ -21,17 +21,17 @@ class ExifReader {
   ///
   /// (ja) 指定したタグが存在するならtrueを返します。
   ///
-  /// * [tag] : The target tag.
-  bool containsOf(String tag) {
-    return _handler.containsOf(tag);
+  /// * [tagName] : The target tag name.
+  bool containsOf(String tagName) {
+    return _handler.containsOf(tagName);
   }
 
   /// (en) Returns the content of the specified tag.
   ///
   /// (ja) 指定したタグの内容を返します。
   ///
-  /// * [tag] : The target tag.
-  dynamic getTagValue(String tag) {
-    return _handler.getTagValue(tag);
+  /// * [tagName] : The target tag name.
+  dynamic getTagValue(String tagName) {
+    return _handler.getTagValue(tagName);
   }
 }
