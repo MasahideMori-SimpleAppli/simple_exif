@@ -1,5 +1,4 @@
-import 'package:flutter/foundation.dart';
-
+import 'dart:typed_data';
 import 'exif_handler.dart';
 import 'exif_tag.dart';
 

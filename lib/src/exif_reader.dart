@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
+import 'package:simple_exif/simple_exif.dart';
 
 import 'exif_handler.dart';
 
@@ -10,11 +11,11 @@ class ExifReader {
 
   ExifReader(Uint8List bytes) : _handler = ExifHandler.fromBytes(bytes);
 
-  /// (en) Gets a list of all tags.
+  /// (en) Gets a list of all tag names.
   ///
   /// (ja) 全てのタグをリストで取得します。
-  List<String> getAllTags() {
-    return _handler.getAllTags();
+  List<String> getAllTagNames() {
+    return _handler.getAllTagNames();
   }
 
   /// (en) Returns true if the specified tag exists.
@@ -26,12 +27,12 @@ class ExifReader {
     return _handler.containsOf(tagName);
   }
 
-  /// (en) Returns the content of the specified tag.
+  /// (en) Returns the specified tag.
   ///
-  /// (ja) 指定したタグの内容を返します。
+  /// (ja) 指定したタグを返します。
   ///
   /// * [tagName] : The target tag name.
-  dynamic getTagValue(String tagName) {
-    return _handler.getTagValue(tagName);
+  ExifTag? getTag(String tagName) {
+    return _handler.getTag(tagName);
   }
 }

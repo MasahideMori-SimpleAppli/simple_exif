@@ -1,28 +1,49 @@
-import 'package:simple_exif/src/exif_type/exif_rational.dart';
-import 'package:simple_exif/src/exif_type/exif_short.dart';
+import 'package:simple_exif/src/exif_type/exif_ascii_code_array.dart';
 
-// TODO パラメータを調整中（誤りが含まれる可能性があります）
+import '../simple_exif.dart';
+
 /// (en) This is a data class for handling Exif tag information.
 /// By using this class, you can safely handle commonly used default tags.
 ///
 /// (ja) これは、Exif のタグ情報を取り扱うためのデータクラスです。
 /// このクラスを介することで、よく使われるデフォルトタグを安全に取り扱えます。
 class ExifTag {
-  final String tagName;
-  final dynamic value;
+  final String name;
+  final ExifType value;
 
-  /// * [tagName] : ExifTag name.
+  /// * [name] : ExifTag name.
   /// * [value] : The value.
-  ExifTag._(this.tagName, this.value);
+  ExifTag._(this.name, this.value);
+
+  /// * [value] : The image description.
+  factory ExifTag.imageDescription(ExifAsciiCodeArray value) {
+    return ExifTag._('ImageDescription', value);
+  }
 
   /// * [value] : Manufacturer name.
-  factory ExifTag.make(String value) {
+  factory ExifTag.make(ExifAsciiCodeArray value) {
     return ExifTag._('Make', value);
   }
 
   /// * [value] : Camera model name.
-  factory ExifTag.model(String value) {
+  factory ExifTag.model(ExifAsciiCodeArray value) {
     return ExifTag._('Model', value);
+  }
+
+  // TODO 以降は調整中。
+
+  /// * [value] : Image orientation.
+  /// The value is an integer from 1 to 8, as follows:
+  /// 1: No rotation.
+  /// 2: Flip horizontally.
+  /// 3: Rotate 180 degrees.
+  /// 4: Flip vertically.
+  /// 5: Rotate 90 degrees counterclockwise and flip horizontally.
+  /// 6: Rotate 90 degrees counterclockwise.
+  /// 7: Rotate 90 degrees clockwise and flip horizontally.
+  /// 8: Rotate 90 degrees clockwise.
+  factory ExifTag.orientation(ExifShort value) {
+    return ExifTag._('Orientation', value);
   }
 
   /// The date and time the file was last modified.
@@ -58,19 +79,7 @@ class ExifTag {
     return ExifTag._('ExifVersion', value);
   }
 
-  /// * [value] : Image orientation.
-  /// The value is an integer from 1 to 8, as follows:
-  /// 1: No rotation.
-  /// 2: Flip horizontally.
-  /// 3: Rotate 180 degrees.
-  /// 4: Flip vertically.
-  /// 5: Rotate 90 degrees counterclockwise and flip horizontally.
-  /// 6: Rotate 90 degrees counterclockwise.
-  /// 7: Rotate 90 degrees clockwise and flip horizontally.
-  /// 8: Rotate 90 degrees clockwise.
-  factory ExifTag.orientation(ExifShort value) {
-    return ExifTag._('Orientation', value);
-  }
+
 
   /// * [value] : Exposure time.
   factory ExifTag.exposureTime(ExifRational value) {
