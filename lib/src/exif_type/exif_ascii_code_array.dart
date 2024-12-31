@@ -1,11 +1,19 @@
 import 'package:simple_exif/simple_exif.dart';
 
 class ExifAsciiCodeArray extends ExifType {
-  final List<ExifAsciiCode> value;
+  late final List<ExifAsciiCode> value;
 
   ExifAsciiCodeArray(this.value) : super(EnumExifType.asciiCodeArray);
 
-  // TODO 利便性のためにfromStrメソッドが必要。
+  /// Converts a String into an ASCII code array and initializes it.
+  /// * [v] : Source text.
+  ExifAsciiCodeArray.fromStr(String v) : super(EnumExifType.asciiCodeArray){
+    List<ExifAsciiCode> array = [];
+    for(int i in v.runes.toList()){
+      array.add(ExifAsciiCode(i));
+    }
+    value = array;
+  }
 
   @override
   String toString() {

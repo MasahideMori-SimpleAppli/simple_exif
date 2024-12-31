@@ -9,6 +9,8 @@ Please note that it will not be available until development is complete.
 
 ## Overview
 This is a package for reading and modifying the Exif information of JPEG images.
+Implements required or frequently used features of the Exif 2.3 standard.
+
 This package has been adapted to work with Flutter Web.
 
 ## Usage

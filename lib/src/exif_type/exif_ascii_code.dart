@@ -1,10 +1,10 @@
 import 'package:simple_exif/simple_exif.dart';
 
 class ExifAsciiCode extends ExifType {
-  final String value;
+  final int value;
 
   ExifAsciiCode(this.value) : super(EnumExifType.asciiCode);
 
   @override
-  String toString() => value;
+  String toString() => String.fromCharCodes([value]);
 }
