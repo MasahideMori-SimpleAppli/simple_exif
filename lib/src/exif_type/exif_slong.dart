@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:simple_exif/src/exif_type/enum_exif_data_type.dart';
 import 'package:simple_exif/src/exif_type/exif_type.dart';
 
@@ -14,4 +16,10 @@ class ExifSLong extends ExifType{
 
   @override
   String toString() => value.toString();
+
+  // TODO
+  @override
+  Uint8List? toUint8List({Endian endian = Endian.big}) {
+
+  }
 }

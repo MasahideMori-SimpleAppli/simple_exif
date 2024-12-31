@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:simple_exif/simple_exif.dart';
 
 class ExifSLongArray extends ExifType {
@@ -16,5 +18,11 @@ class ExifSLongArray extends ExifType {
       r = r.substring(0, r.length - 1);
     }
     return r;
+  }
+
+  // TODO
+  @override
+  Uint8List? toUint8List({Endian endian = Endian.big}) {
+
   }
 }

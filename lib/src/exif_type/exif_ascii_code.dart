@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:simple_exif/simple_exif.dart';
 
 class ExifAsciiCode extends ExifType {
@@ -7,4 +9,12 @@ class ExifAsciiCode extends ExifType {
 
   @override
   String toString() => String.fromCharCodes([value]);
+
+  @override
+  Uint8List? toUint8List({Endian endian = Endian.big}) {
+    List<int> r = [value];
+    // add null code
+    r.add(0);
+    return Uint8List.fromList(r);
+  }
 }

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:simple_exif/src/exif_type/enum_exif_data_type.dart';
 
 /// (en) This is the parent class for each Exif tag data.
@@ -12,4 +13,11 @@ class ExifType {
 
   @override
   String toString() => "ExifType: ${dataType.name}";
+
+  /// Convert it to bytecode and return it.
+  /// If there is no value, null is returned.
+  /// * [endian] : big or small. default is big.
+  Uint8List? toUint8List({Endian endian = Endian.big}){
+    return null;
+  }
 }

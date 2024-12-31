@@ -13,6 +13,8 @@ class ExifTag {
   /// * [value] : The value.
   ExifTag._(this.name, this.value);
 
+  // Tiff Rev 6.0//
+
   /// * [value] : The image description (Image title).
   factory ExifTag.imageDescription(ExifAsciiCodeArray value) {
     return ExifTag._('ImageDescription', value);
@@ -127,36 +129,21 @@ class ExifTag {
   }
 
   /// * [value] : The placement of chroma samples relative to luma samples.
-  /// 1 : Center. (Default, YCbCr 4:2:0)
-  /// 2 : Co-sited. (YCbCr 4:2:2)
+  ///
+  /// 1 : Center. (Default, YCbCr 4:2:0).
+  ///
+  /// 2 : Co-sited. (YCbCr 4:2:2).
+  ///
   /// other : reservation.
   factory ExifTag.yCbCrPositioning(ExifShort value) {
     return ExifTag._('YCbCrPositioning', value);
   }
 
+  // Exif 2.3 //
+
   /// * [value] : Exposure time. The unit is seconds.
   factory ExifTag.exposureTime(ExifRational value) {
     return ExifTag._('ExposureTime', value);
-  }
-
-  // TODO 以降は調整中。
-
-  /// The date and time the photo was taken.
-  /// * [value] : It will automatically convert it into a string
-  /// in the required format (YYYY:MM:DD HH:MM:SS).
-  factory ExifTag.dateTimeOriginal(DateTime value) {
-    final formatted = value
-        .toIso8601String()
-        .replaceFirst('T', ' ')
-        .split('.')[0]
-        .replaceAll('-', ':');
-    return ExifTag._('DateTimeOriginal', formatted);
-  }
-
-  /// * [value] : Exif version number represented as 4-byte fixed-length data
-  /// (e.g. 0232 (Exif 2.32)).
-  factory ExifTag.exifVersion(String value) {
-    return ExifTag._('ExifVersion', value);
   }
 
   /// * [value] : Aperture (f-number).
@@ -164,64 +151,152 @@ class ExifTag {
     return ExifTag._('FNumber', value);
   }
 
-  /// * [value] : ISO sensitivity.
-  factory ExifTag.iso(int value) {
-    return ExifTag._('ISO', value);
+  /// * [value] : Exif version number represented as 4-byte fixed-length data
+  /// (e.g. 0232 (Exif 2.32)).
+  /// Normally, you should assign a value converted from
+  /// ExifUndefined.fromASCIICodeArray(v).
+  factory ExifTag.exifVersion(ExifUndefined value) {
+    if (value.toString().length != 4) {
+      throw ArgumentError("The input must be a string of length 4.");
+    }
+    return ExifTag._('ExifVersion', value);
   }
 
-  /// * [value] : Focal length.
+  /// The date and time the photo was taken.
+  /// * [value] : It will automatically convert it into a string
+  /// in the required format (YYYY:MM:DD HH:MM:SS).
+  factory ExifTag.dateTimeOriginal(DateTime value) {
+    final String formatted = value
+        .toIso8601String()
+        .replaceFirst('T', ' ')
+        .split('.')[0]
+        .replaceAll('-', ':');
+    return ExifTag._('DateTimeOriginal', ExifAsciiCodeArray.fromStr(formatted));
+  }
+
+  /// * [value] : A four-digit ASCII code value.
+  ///
+  /// default : 4560 (RGB uncompressed)
+  ///
+  /// other : 1230 (Other)
+  ///
+  /// The meaning of each code number is as follows:
+  ///
+  /// 0 : Does not exist.
+  ///
+  /// 1 : Y.
+  ///
+  /// 2 : Cb.
+  ///
+  /// 3 : Cr.
+  ///
+  /// 4 : R.
+  ///
+  /// 5 : G.
+  ///
+  /// 6 : B.
+  ///
+  /// other : reservation.
+  factory ExifTag.componentsConfiguration(ExifUndefined value) {
+    if (value.toString().length != 4) {
+      throw ArgumentError("The input must be a string of length 4.");
+    }
+    return ExifTag._('ComponentsConfiguration', value);
+  }
+
+  /// * [value] : Flash status.
+  ///
+  /// First, consider the bit sequence as follows:
+  /// [[MSB 7 6 5 4-3 2-1 0 LSB]].
+  ///
+  /// The following bitwise flash flags are displayed:
+  ///
+  /// 0 : 0b = No flash, 1b = Flash.
+  ///
+  /// 2-1 : 00b = No strobe return detection, 01b = reservation,
+  /// 10b = Strobe return not detected, 11b = Strobe return detection.
+  ///
+  /// 4-3 : Camera flash mode value. 00b = Unknown, 01b = Forced flash mode,
+  /// 10b = Forced non-lighting mode, 11b = Auto flash mode.
+  ///
+  /// 5 : 0b = Has strobe function. 1b = No strobe function.
+  ///
+  /// 6 : 0b = No red-eye reduction or unknown. 1b = With red-eye reduction.
+  ///
+  factory ExifTag.flash(ExifShort value) {
+    return ExifTag._('Flash', value);
+  }
+
+  /// * [value] : This indicates the actual focal length of
+  /// the photographic lens. The unit is mm.
   factory ExifTag.focalLength(ExifRational value) {
     return ExifTag._('FocalLength', value);
   }
 
-  /// * [value] : Flash status.
-  factory ExifTag.flash(int value) {
-    return ExifTag._('Flash', value);
+  /// * [value] : Indicates the version of the Flashpix format that
+  /// the FPXR file supports.
+  /// If the FPXR function is compatible with Flashpix format version 1.0,
+  /// 4-byte ASCII "0100" is recorded. Other values are reserved.
+  factory ExifTag.flashpixVersion(ExifUndefined value){
+    return ExifTag._('FlashpixVersion', value);
   }
 
-  /// * [value] : Metering mode.
-  factory ExifTag.meteringMode(int value) {
-    return ExifTag._('MeteringMode', value);
+  // TODO 以降は調整中。長さについては以前も含めて全て再確認と例外処理を追加。
+
+  /// * [value] : Color space.
+  factory ExifTag.colorSpace(ExifShort value) {
+    return ExifTag._('ColorSpace', value);
   }
 
-  /// * [value] : White balance mode.
-  factory ExifTag.whiteBalance(int value) {
+  /// * [value] : Short or Long type.
+  factory ExifTag.pixelXDimension(Object value) {
+    return ExifTag._('PixelXDimension', value);
+  }
+
+
+  /// * [value] : Short or Long type.
+  factory ExifTag.pixelYDimension(Object value) {
+    return ExifTag._('PixelYDimension', value);
+  }
+
+  /// * [value] : .
+  factory ExifTag.exposureMode(ExifShort value) {
+    return ExifTag._('ExposureMode', value);
+  }
+
+  /// * [value] : .
+  factory ExifTag.whiteBalance(ExifShort value) {
     return ExifTag._('WhiteBalance', value);
   }
 
-  /// * [value] : Exposure program.
-  factory ExifTag.exposureProgram(int value) {
-    return ExifTag._('ExposureProgram', value);
+  /// * [value] : .
+  factory ExifTag.sceneCaptureType(ExifShort value) {
+    return ExifTag._('SceneCaptureType', value);
   }
 
   /// * [value] : GPS latitude.
-  factory ExifTag.gpsLatitude(double value) {
+  factory ExifTag.gpsLatitude(ExifRationalArray value) {
     return ExifTag._('GPSLatitude', value);
   }
 
   /// * [value] : GPS longitude.
-  factory ExifTag.gpsLongitude(double value) {
+  factory ExifTag.gpsLongitude(ExifRationalArray value) {
     return ExifTag._('GPSLongitude', value);
   }
 
   /// * [value] : GPS altitude.
-  factory ExifTag.gpsAltitude(double value) {
+  factory ExifTag.gpsAltitude(ExifRationalArray value) {
     return ExifTag._('GPSAltitude', value);
   }
 
   /// * [value] : GPS timestamp.
-  factory ExifTag.gpsTimeStamp(String value) {
+  factory ExifTag.gpsTimeStamp(ExifRationalArray value) {
     return ExifTag._('GPSTimeStamp', value);
   }
 
   /// * [value] : GPS date stamp.
-  factory ExifTag.gpsDateStamp(String value) {
+  factory ExifTag.gpsDateStamp(ExifAsciiCodeArray value) {
     return ExifTag._('GPSDateStamp', value);
-  }
-
-  /// * [value] : Color space.
-  factory ExifTag.colorSpace(int value) {
-    return ExifTag._('ColorSpace', value);
   }
 
   /// Create other tag.
