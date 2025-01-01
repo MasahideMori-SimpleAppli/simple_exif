@@ -78,7 +78,7 @@ class ExifTag {
   }
 
   /// * [value] : The Image X resolution.
-  /// Default is 72 dpi (ResolutionUnit = 2).
+  /// Default is 72 (dpi) (ResolutionUnit = 2).
   /// If the resolution is unknown, it must be recorded as 72 dpi.
   factory ExifTag.xResolution(ExifRational value) {
     return ExifTag._('XResolution', value);
@@ -93,7 +93,7 @@ class ExifTag {
   /// * [value] : Resolution unit.
   /// 2 : inch. (Default, should be 2 if unknown.)
   /// 3 : cm.
-  /// other : reservation.
+  /// other : Reservation.
   factory ExifTag.resolutionUnit(ExifShort value) {
     return ExifTag._('ResolutionUnit', value);
   }
@@ -134,7 +134,7 @@ class ExifTag {
   ///
   /// 2 : Co-sited. (YCbCr 4:2:2).
   ///
-  /// other : reservation.
+  /// other : Reservation.
   factory ExifTag.yCbCrPositioning(ExifShort value) {
     return ExifTag._('YCbCrPositioning', value);
   }
@@ -156,8 +156,8 @@ class ExifTag {
   /// Normally, you should assign a value converted from
   /// ExifUndefined.fromASCIICodeArray(v).
   factory ExifTag.exifVersion(ExifUndefined value) {
-    if (value.toString().length != 4) {
-      throw ArgumentError("The input must be a string of length 4.");
+    if(value.count() != 4){
+      throw ArgumentError("The data length is invalid.");
     }
     return ExifTag._('ExifVersion', value);
   }
@@ -174,7 +174,7 @@ class ExifTag {
     return ExifTag._('DateTimeOriginal', ExifAsciiCodeArray.fromStr(formatted));
   }
 
-  /// * [value] : A four-digit ASCII code value.
+  /// * [value] : The 4-byte ASCII code value.
   ///
   /// default : 4560 (RGB uncompressed)
   ///
@@ -196,10 +196,10 @@ class ExifTag {
   ///
   /// 6 : B.
   ///
-  /// other : reservation.
+  /// other : Reservation.
   factory ExifTag.componentsConfiguration(ExifUndefined value) {
-    if (value.toString().length != 4) {
-      throw ArgumentError("The input must be a string of length 4.");
+    if(value.count() != 4){
+      throw ArgumentError("The data length is invalid.");
     }
     return ExifTag._('ComponentsConfiguration', value);
   }
@@ -238,66 +238,170 @@ class ExifTag {
   /// If the FPXR function is compatible with Flashpix format version 1.0,
   /// 4-byte ASCII "0100" is recorded. Other values are reserved.
   factory ExifTag.flashpixVersion(ExifUndefined value){
+    if(value.count() != 4){
+      throw ArgumentError("The data length is invalid.");
+    }
     return ExifTag._('FlashpixVersion', value);
   }
 
-  // TODO 以降は調整中。長さについては以前も含めて全て再確認と例外処理を追加。
-
   /// * [value] : Color space.
+  ///
+  /// Follow the code below:
+  ///
+  /// 1 : sRGB.
+  ///
+  /// 0xFFFF : Uncalibrated.
+  ///
+  /// other : Reservation.
   factory ExifTag.colorSpace(ExifShort value) {
     return ExifTag._('ColorSpace', value);
   }
 
-  /// * [value] : Short or Long type.
-  factory ExifTag.pixelXDimension(Object value) {
+  /// * [value] : ExifShort or ExifLong type.
+  /// Meaningful Image Width.
+  factory ExifTag.pixelXDimension(ExifType value) {
+    if(value.dataType != EnumExifType.short && value.dataType != EnumExifType.long){
+      throw ArgumentError("Only ExifShort or ExifLong are available.");
+    }
     return ExifTag._('PixelXDimension', value);
   }
 
 
-  /// * [value] : Short or Long type.
-  factory ExifTag.pixelYDimension(Object value) {
+  /// * [value] : ExifShort or ExifLong type.
+  /// Meaningful Image Height.
+  factory ExifTag.pixelYDimension(ExifType value) {
+    if(value.dataType != EnumExifType.short && value.dataType != EnumExifType.long){
+      throw ArgumentError("Only ExifShort or ExifLong are available.");
+    }
     return ExifTag._('PixelYDimension', value);
   }
 
-  /// * [value] : .
+  /// * [value] : Follow the code below:
+  ///
+  /// 0 : Automatic Exposure.
+  ///
+  /// 1 : Exposure Manual.
+  ///
+  /// 2 : Auto Bracketing. (A mode for taking continuous shots while
+  /// changing exposure settings under specified conditions.)
+  ///
+  /// other : Reservation.
   factory ExifTag.exposureMode(ExifShort value) {
     return ExifTag._('ExposureMode', value);
   }
 
-  /// * [value] : .
+  /// * [value] : Follow the code below:
+  ///
+  /// 0 : Automatic.
+  ///
+  /// 1 : Manual.
+  ///
+  /// other : Reservation.
   factory ExifTag.whiteBalance(ExifShort value) {
     return ExifTag._('WhiteBalance', value);
   }
 
-  /// * [value] : .
+  /// * [value] : Follow the code below:
+  ///
+  /// 0 : Default.
+  ///
+  /// 1 : Landscape.
+  ///
+  /// 2 : People.
+  ///
+  /// 3 : Night view.
+  ///
+  /// other : Reservation.
   factory ExifTag.sceneCaptureType(ExifShort value) {
     return ExifTag._('SceneCaptureType', value);
   }
 
+  // GPS //
+
+  /// * [value] : GPS latitude reference.
+  ///
+  /// Follow the code below:
+  ///
+  /// N : North latitude.
+  ///
+  /// S : South latitude.
+  ///
+  /// other : Reservation.
+  factory ExifTag.gpsLatitudeRef(ExifAsciiCode value) {
+    return ExifTag._('GPSLatitudeRef', value);
+  }
+
   /// * [value] : GPS latitude.
+  /// eg. [dd/1, mm/1, ss/1] or [dd/1, mmmm/100, 0/1]
   factory ExifTag.gpsLatitude(ExifRationalArray value) {
+    if(value.count() != 3){
+      throw ArgumentError("The data length is invalid.");
+    }
     return ExifTag._('GPSLatitude', value);
   }
 
+  /// * [value] : GPS longitude reference.
+  ///
+  /// Follow the code below:
+  ///
+  /// E : East longitude.
+  ///
+  /// W : West longitude.
+  ///
+  /// other : Reservation.
+  factory ExifTag.gpsLongitudeRef(ExifAsciiCode value) {
+    return ExifTag._('GPSLongitudeRef', value);
+  }
+
   /// * [value] : GPS longitude.
+  /// eg. [ddd/1, mm/1, ss/1] or [ddd/1, mmmm/100, 0/1]
   factory ExifTag.gpsLongitude(ExifRationalArray value) {
+    if(value.count() != 3){
+      throw ArgumentError("The data length is invalid.");
+    }
     return ExifTag._('GPSLongitude', value);
   }
 
+  /// * [value] : GPS altitude reference
+  ///
+  /// Follow the code below:
+  ///
+  /// 0 : When the reference point is sea level and the altitude is
+  /// higher than sea level.
+  ///
+  /// 1 : If the altitude is lower than sea level.
+  /// (The GPSAltitude tag contains the absolute altitude value.).
+  ///
+  /// other : Reservation.
+  factory ExifTag.gpsAltitudeRef(ExifByte value) {
+    return ExifTag._('GPSAltitudeRef', value);
+  }
+
   /// * [value] : GPS altitude.
-  factory ExifTag.gpsAltitude(ExifRationalArray value) {
+  /// The unit is meters.
+  factory ExifTag.gpsAltitude(ExifRational value) {
     return ExifTag._('GPSAltitude', value);
   }
 
-  /// * [value] : GPS timestamp.
+  /// * [value] : GPS timestamp. This is UTC(Coordinated Universal Time).
+  /// The format is [hour, min, sec].
   factory ExifTag.gpsTimeStamp(ExifRationalArray value) {
+    if(value.count() != 3){
+      throw ArgumentError("The data length is invalid.");
+    }
     return ExifTag._('GPSTimeStamp', value);
   }
 
   /// * [value] : GPS date stamp.
+  /// The format is YYYY:MM:DD.
   factory ExifTag.gpsDateStamp(ExifAsciiCodeArray value) {
+    if(value.count() != 11){
+      throw ArgumentError("The data length is invalid.");
+    }
     return ExifTag._('GPSDateStamp', value);
   }
+
+  // custom tag //
 
   /// Create other tag.
   /// * [tagName] : Exif tag name.

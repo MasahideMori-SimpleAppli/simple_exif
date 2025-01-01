@@ -24,4 +24,10 @@ class ExifUndefined extends ExifType {
   Uint8List? toUint8List({Endian endian = Endian.big}) {
     return Uint8List.fromList(value);
   }
+
+  /// The Exif tag count.
+  @override
+  int count(){
+    return value.length;
+  }
 }

@@ -36,4 +36,11 @@ class ExifAsciiCodeArray extends ExifType {
     r.add(0);
     return Uint8List.fromList(r);
   }
+
+  /// The Exif tag count.
+  @override
+  int count(){
+    // code + null code.
+    return value.length + 1;
+  }
 }

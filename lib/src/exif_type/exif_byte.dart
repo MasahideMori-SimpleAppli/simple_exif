@@ -21,4 +21,5 @@ class ExifByte extends ExifType{
     List<int> r = [value];
     return Uint8List.fromList(r);
   }
+
 }

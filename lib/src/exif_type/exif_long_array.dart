@@ -35,4 +35,10 @@ class ExifLongArray extends ExifType {
     // Uint8Listに変換
     return byteData.buffer.asUint8List();
   }
+
+  /// The Exif tag count.
+  @override
+  int count(){
+    return value.length;
+  }
 }

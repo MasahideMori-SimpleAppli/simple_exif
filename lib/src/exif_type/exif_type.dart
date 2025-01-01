@@ -20,4 +20,9 @@ class ExifType {
   Uint8List? toUint8List({Endian endian = Endian.big}){
     return null;
   }
+
+  /// The Exif tag count.
+  int count(){
+    return 1;
+  }
 }

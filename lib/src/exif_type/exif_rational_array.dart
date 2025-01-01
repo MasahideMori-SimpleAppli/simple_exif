@@ -25,4 +25,10 @@ class ExifRationalArray extends ExifType {
   Uint8List? toUint8List({Endian endian = Endian.big}) {
 
   }
+
+  /// The Exif tag count.
+  @override
+  int count(){
+    return value.length;
+  }
 }

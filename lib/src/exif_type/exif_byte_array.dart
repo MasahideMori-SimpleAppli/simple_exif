@@ -28,4 +28,10 @@ class ExifByteArray extends ExifType {
     }
     return Uint8List.fromList(r);
   }
+
+  /// The Exif tag count.
+  @override
+  int count(){
+    return value.length;
+  }
 }
