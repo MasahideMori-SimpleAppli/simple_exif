@@ -16,9 +16,10 @@ class ExifShort extends ExifType{
   @override
   String toString() => value.toString();
 
-  // TODO
   @override
   Uint8List? toUint8List({Endian endian = Endian.big}) {
-
+    ByteData byteData = ByteData(2);
+    byteData.setUint16(0, value, endian); // Endianを指定
+    return byteData.buffer.asUint8List();
   }
 }

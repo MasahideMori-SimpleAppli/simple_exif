@@ -26,6 +26,7 @@ class ExifAsciiCodeArray extends ExifType {
     return r;
   }
 
+  // TODO 恐らく修正が必要。
   @override
   Uint8List? toUint8List({Endian endian = Endian.big}) {
     List<int> r = [];

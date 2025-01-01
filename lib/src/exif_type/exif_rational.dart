@@ -28,10 +28,12 @@ class ExifRational extends ExifType{
     return "$numerator/$denominator";
   }
 
-  // TODO
   @override
   Uint8List? toUint8List({Endian endian = Endian.big}) {
-
+    ByteData byteData = ByteData(8);
+    byteData.setUint32(0, numerator.value, endian);    // 分子をセット
+    byteData.setUint32(4, denominator.value, endian); // 分母をセット
+    return byteData.buffer.asUint8List();
   }
 
 }

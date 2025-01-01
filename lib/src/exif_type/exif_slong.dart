@@ -17,9 +17,10 @@ class ExifSLong extends ExifType{
   @override
   String toString() => value.toString();
 
-  // TODO
   @override
   Uint8List? toUint8List({Endian endian = Endian.big}) {
-
+    ByteData byteData = ByteData(4);
+    byteData.setInt32(0, value, endian); // 符号あり32ビット整数
+    return byteData.buffer.asUint8List();
   }
 }

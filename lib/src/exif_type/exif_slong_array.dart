@@ -20,15 +20,18 @@ class ExifSLongArray extends ExifType {
     return r;
   }
 
-  // TODO
   @override
   Uint8List? toUint8List({Endian endian = Endian.big}) {
-
+    ByteData byteData = ByteData(value.length * 4);
+    for (int i = 0; i < value.length; i++) {
+      byteData.setInt32(i * 4, value[i].value, endian);
+    }
+    return byteData.buffer.asUint8List();
   }
 
   /// The Exif tag count.
   @override
-  int count(){
+  int count() {
     return value.length;
   }
 }
