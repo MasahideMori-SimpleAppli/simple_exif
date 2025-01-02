@@ -115,10 +115,10 @@ class ExifTag {
           .replaceFirst('T', ' ')
           .split('.')[0]
           .replaceAll('-', ':');
-      return ExifTag._('DateTime', ExifAsciiCodeArray.fromStr(formatted));
+      return ExifTag._('DateTime', ExifAsciiCodeArray(formatted));
     } else {
       const String unknown = "    :  :     :  :  ";
-      return ExifTag._('name', ExifAsciiCodeArray.fromStr(unknown));
+      return ExifTag._('name', ExifAsciiCodeArray(unknown));
     }
   }
 
@@ -156,7 +156,7 @@ class ExifTag {
   /// Normally, you should assign a value converted from
   /// ExifUndefined.fromASCIICodeArray(v).
   factory ExifTag.exifVersion(ExifUndefined value) {
-    if(value.count() != 4){
+    if (value.count() != 4) {
       throw ArgumentError("The data length is invalid.");
     }
     return ExifTag._('ExifVersion', value);
@@ -171,7 +171,7 @@ class ExifTag {
         .replaceFirst('T', ' ')
         .split('.')[0]
         .replaceAll('-', ':');
-    return ExifTag._('DateTimeOriginal', ExifAsciiCodeArray.fromStr(formatted));
+    return ExifTag._('DateTimeOriginal', ExifAsciiCodeArray(formatted));
   }
 
   /// * [value] : The 4-byte ASCII code value.
@@ -198,7 +198,7 @@ class ExifTag {
   ///
   /// other : Reservation.
   factory ExifTag.componentsConfiguration(ExifUndefined value) {
-    if(value.count() != 4){
+    if (value.count() != 4) {
       throw ArgumentError("The data length is invalid.");
     }
     return ExifTag._('ComponentsConfiguration', value);
@@ -237,8 +237,8 @@ class ExifTag {
   /// the FPXR file supports.
   /// If the FPXR function is compatible with Flashpix format version 1.0,
   /// 4-byte ASCII "0100" is recorded. Other values are reserved.
-  factory ExifTag.flashpixVersion(ExifUndefined value){
-    if(value.count() != 4){
+  factory ExifTag.flashpixVersion(ExifUndefined value) {
+    if (value.count() != 4) {
       throw ArgumentError("The data length is invalid.");
     }
     return ExifTag._('FlashpixVersion', value);
@@ -260,17 +260,18 @@ class ExifTag {
   /// * [value] : ExifShort or ExifLong type.
   /// Meaningful Image Width.
   factory ExifTag.pixelXDimension(ExifType value) {
-    if(value.dataType != EnumExifType.short && value.dataType != EnumExifType.long){
+    if (value.dataType != EnumExifType.short &&
+        value.dataType != EnumExifType.long) {
       throw ArgumentError("Only ExifShort or ExifLong are available.");
     }
     return ExifTag._('PixelXDimension', value);
   }
 
-
   /// * [value] : ExifShort or ExifLong type.
   /// Meaningful Image Height.
   factory ExifTag.pixelYDimension(ExifType value) {
-    if(value.dataType != EnumExifType.short && value.dataType != EnumExifType.long){
+    if (value.dataType != EnumExifType.short &&
+        value.dataType != EnumExifType.long) {
       throw ArgumentError("Only ExifShort or ExifLong are available.");
     }
     return ExifTag._('PixelYDimension', value);
@@ -327,14 +328,14 @@ class ExifTag {
   /// S : South latitude.
   ///
   /// other : Reservation.
-  factory ExifTag.gpsLatitudeRef(ExifAsciiCode value) {
+  factory ExifTag.gpsLatitudeRef(ExifAsciiCodeArray value) {
     return ExifTag._('GPSLatitudeRef', value);
   }
 
   /// * [value] : GPS latitude.
   /// eg. [dd/1, mm/1, ss/1] or [dd/1, mmmm/100, 0/1]
   factory ExifTag.gpsLatitude(ExifRationalArray value) {
-    if(value.count() != 3){
+    if (value.count() != 3) {
       throw ArgumentError("The data length is invalid.");
     }
     return ExifTag._('GPSLatitude', value);
@@ -349,14 +350,14 @@ class ExifTag {
   /// W : West longitude.
   ///
   /// other : Reservation.
-  factory ExifTag.gpsLongitudeRef(ExifAsciiCode value) {
+  factory ExifTag.gpsLongitudeRef(ExifAsciiCodeArray value) {
     return ExifTag._('GPSLongitudeRef', value);
   }
 
   /// * [value] : GPS longitude.
   /// eg. [ddd/1, mm/1, ss/1] or [ddd/1, mmmm/100, 0/1]
   factory ExifTag.gpsLongitude(ExifRationalArray value) {
-    if(value.count() != 3){
+    if (value.count() != 3) {
       throw ArgumentError("The data length is invalid.");
     }
     return ExifTag._('GPSLongitude', value);
@@ -386,7 +387,7 @@ class ExifTag {
   /// * [value] : GPS timestamp. This is UTC(Coordinated Universal Time).
   /// The format is [hour, min, sec].
   factory ExifTag.gpsTimeStamp(ExifRationalArray value) {
-    if(value.count() != 3){
+    if (value.count() != 3) {
       throw ArgumentError("The data length is invalid.");
     }
     return ExifTag._('GPSTimeStamp', value);
@@ -395,7 +396,7 @@ class ExifTag {
   /// * [value] : GPS date stamp.
   /// The format is YYYY:MM:DD.
   factory ExifTag.gpsDateStamp(ExifAsciiCodeArray value) {
-    if(value.count() != 11){
+    if (value.count() != 11) {
       throw ArgumentError("The data length is invalid.");
     }
     return ExifTag._('GPSDateStamp', value);

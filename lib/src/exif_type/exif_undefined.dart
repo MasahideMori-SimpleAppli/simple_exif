@@ -8,11 +8,13 @@ class ExifUndefined extends ExifType {
 
   /// Converts an array of ASCII codes to this type.
   /// Unlike ASCII codes, this type does not end with a null code.
-  ExifUndefined.fromASCIICodeArray(ExifAsciiCodeArray v)
-      : super(EnumExifType.undefined) {
-    List<int> r = [];
-    for (ExifAsciiCode i in v.value) {
-      r.add(i.value);
+  ExifUndefined.fromASCIICodeArray(
+    ExifAsciiCodeArray v,
+  ) : super(EnumExifType.undefined) {
+    final Uint8List? ascii = v.toUint8List();
+    List<int> r = ascii != null ? v.toUint8List()!.toList() : [];
+    if (r.isNotEmpty) {
+      r.removeLast();
     }
     value = r;
   }
@@ -27,7 +29,7 @@ class ExifUndefined extends ExifType {
 
   /// The Exif tag count.
   @override
-  int count(){
+  int count() {
     return value.length;
   }
 }

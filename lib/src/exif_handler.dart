@@ -1,13 +1,6 @@
 import 'dart:typed_data';
 import 'package:simple_exif/simple_exif.dart';
-import 'package:simple_exif/src/exif_type/exif_ascii_code.dart';
-import 'package:simple_exif/src/exif_type/exif_long.dart';
-import 'package:simple_exif/src/exif_type/exif_rational.dart';
-import 'package:simple_exif/src/exif_type/exif_type.dart';
-import 'package:simple_exif/src/exif_type/exif_undefined.dart';
 import 'package:simple_exif/src/util_exif_tag_name.dart';
-
-import 'exif_tag.dart';
 
 /// (en) This is an inner class that analyzes, stores and
 /// manipulates the entire Exif data.
@@ -100,7 +93,10 @@ class ExifHandler {
   }
 
   /// ヘルパー関数: 8ビット値を読み取る
-  int _readUint8(Uint8List data, int offset, bool isBigEndian) {}
+  int _readUint8(Uint8List data, int offset) {
+    // 8ビット値の読み取りはエンディアンに影響されない。
+    return data[offset];
+  }
 
   /// ヘルパー関数: 16ビット値を読み取る
   int _readUint16(Uint8List data, int offset, bool isBigEndian) {
@@ -138,103 +134,123 @@ class ExifHandler {
   }
 
   /// タグ値を読み取るヘルパー関数。
-  /// データ型が未定義の場合はnullが返されます。
+  /// データ型が未定義の場合や、範囲外アクセスが発生するケースではnullが返されます。
   /// それ以外はこのパッケージで定義されたExifTypeの専用クラスが返されます。
   /// * [exifSegment] : Exifセグメント全体（Exif情報のみ）のバイトコード。
   /// * [entryOffset] : タグの格納されているオフセット。
   /// * [isBigEndian] : TIFFのエンディアン情報。
   ExifType? _readTagValue(
       Uint8List exifSegment, int entryOffset, bool isBigEndian) {
-    // データ型を取得 (2バイト)
-    final int dataType = _readUint16(exifSegment, entryOffset + 2, isBigEndian);
-    // データ数を取得 (4バイト)
-    final int dataCount =
-        _readUint32(exifSegment, entryOffset + 4, isBigEndian);
-    // 値または値へのオフセットを取得 (4バイト)
-    final int valueOffset =
-        _readUint32(exifSegment, entryOffset + 8, isBigEndian);
-    // データ型が未定義の場合
-    if (!dataTypeSize.containsKey(dataType)) {
-      return null; // 未知の型
-    }
-    // 8bitを1とした時のデータサイズを計算
-    final int dataSize = dataTypeSize[dataType]! * dataCount;
-    // 値がオフセットで指定されているか直接含まれているかを判定
-    late final Uint8List valueBytes;
-    if (dataSize <= 4) {
-      // エントリ内に直接格納されている場合
-      valueBytes =
-          exifSegment.sublist(entryOffset + 8, entryOffset + 8 + dataSize);
-    } else {
-      // オフセット先にデータが格納されている場合
-      valueBytes = exifSegment.sublist(valueOffset, valueOffset + dataSize);
-    }
-    // データ型に応じて値を解析
-    if (dataCount == 1) {
-      switch (dataType) {
-        case 1: // BYTE
-          return ExifByte(_readUint8(valueBytes, 0, isBigEndian));
-        case 2: // ASCII
-          return ExifAsciiCode(_readUint8(valueBytes, 0, isBigEndian));
-        case 3: // SHORT
-          return ExifShort(_readUint16(valueBytes, 0, isBigEndian));
-        case 4: // LONG
-          return ExifLong(_readUint32(valueBytes, 0, isBigEndian));
-        case 5: // RATIONAL
-          return ExifRational(ExifLong(_readUint32(valueBytes, 0, isBigEndian)),
-              ExifLong(_readUint32(valueBytes, 4, isBigEndian)));
-        case 7: // UNDEFINED
-          return ExifUndefined(valueBytes); // バイト列として返す
-        case 9: // SLONG
-          return ExifSLong(_readUint32(valueBytes, 0, isBigEndian));
-        case 10: // SRATIONAL
-          return ExifSRational(
-              ExifSLong(_readUint32(valueBytes, 0, isBigEndian)),
-              ExifSLong(_readUint32(valueBytes, 4, isBigEndian)));
-        default:
-          return null; // 未知のデータ型
+    try {
+      // データ型を取得 (2バイト)
+      final int dataType =
+          _readUint16(exifSegment, entryOffset + 2, isBigEndian);
+      // データ数を取得 (4バイト)
+      final int dataCount =
+          _readUint32(exifSegment, entryOffset + 4, isBigEndian);
+      // 値または値へのオフセットを取得 (4バイト)
+      final int valueOffset =
+          _readUint32(exifSegment, entryOffset + 8, isBigEndian);
+      // データ型が未定義の場合
+      if (!dataTypeSize.containsKey(dataType)) {
+        return null; // 未知の型
       }
-    } else {
-      // TODO 作成中
-      switch (dataType) {
-        case 1: // BYTE
-
-        case 2: // ASCII
-          // TODO 以降は調整中
-          return ExifAsciiCode(
-              String.fromCharCodes(valueBytes.takeWhile((b) => b != 0)));
-        case 3: // SHORT
-          return List.generate(dataCount, (i) {
-            int offset = i * 2;
-            return _readUint16(valueBytes, offset, isBigEndian);
-          });
-        case 4: // LONG
-          return List.generate(dataCount, (i) {
-            int offset = i * 4;
-            return _readUint32(valueBytes, offset, isBigEndian);
-          });
-        case 5: // RATIONAL
-          return List.generate(dataCount, (i) {
-            int numerator = _readUint32(valueBytes, i * 8, isBigEndian);
-            int denominator = _readUint32(valueBytes, i * 8 + 4, isBigEndian);
-            return ExifRational(ExifLong(numerator), ExifLong(denominator));
-          });
-        case 7: // UNDEFINED
-          return ExifUndefined(valueBytes); // バイト列として返す
-        case 9: // SLONG
-          return List.generate(dataCount, (i) {
-            int offset = i * 4;
-            return _readUint32(valueBytes, offset, isBigEndian);
-          });
-        case 10: // SRATIONAL
-          return List.generate(dataCount, (i) {
-            int numerator = _readUint32(valueBytes, i * 8, isBigEndian);
-            int denominator = _readUint32(valueBytes, i * 8 + 4, isBigEndian);
-            return numerator / denominator;
-          });
-        default:
-          return null; // 未知のデータ型
+      // 8bitを1とした時のデータサイズを計算
+      final int dataSize = dataTypeSize[dataType]! * dataCount;
+      // 値がオフセットで指定されているか直接含まれているかを判定
+      late final Uint8List valueBytes;
+      if (dataSize <= 4) {
+        // エントリ内に直接格納されている場合
+        valueBytes =
+            exifSegment.sublist(entryOffset + 8, entryOffset + 8 + dataSize);
+      } else {
+        // オフセット先にデータが格納されている場合
+        valueBytes = exifSegment.sublist(valueOffset, valueOffset + dataSize);
       }
+      // データ型に応じて値を解析
+      if (dataCount == 1) {
+        switch (dataType) {
+          case 1: // BYTE
+            return ExifByte(_readUint8(valueBytes, 0));
+          case 2: // ASCII
+            // NULL終端を除いたテキストデータのため、空文字になる。
+            return ExifAsciiCodeArray("");
+          case 3: // SHORT
+            return ExifShort(_readUint16(valueBytes, 0, isBigEndian));
+          case 4: // LONG
+            return ExifLong(_readUint32(valueBytes, 0, isBigEndian));
+          case 5: // RATIONAL
+            return ExifRational(
+                ExifLong(_readUint32(valueBytes, 0, isBigEndian)),
+                ExifLong(_readUint32(valueBytes, 4, isBigEndian)));
+          case 7: // UNDEFINED
+            return ExifUndefined(valueBytes); // バイト列として返す
+          case 9: // SLONG
+            return ExifSLong(_readUint32(valueBytes, 0, isBigEndian));
+          case 10: // SRATIONAL
+            return ExifSRational(
+                ExifSLong(_readUint32(valueBytes, 0, isBigEndian)),
+                ExifSLong(_readUint32(valueBytes, 4, isBigEndian)));
+          default:
+            return null; // 未知のデータ型
+        }
+      } else {
+        switch (dataType) {
+          case 1: // BYTE
+            final List<ExifByte> values = [];
+            for (int i = 0; i < dataCount; i++) {
+              values.add(ExifByte(_readUint8(valueBytes, i)));
+            }
+            return ExifByteArray(values);
+          case 2: // ASCII
+            // NULL終端を除いたテキストデータを読み出す
+            final String asciiString =
+                String.fromCharCodes(valueBytes.take(dataCount - 1));
+            return ExifAsciiCodeArray(asciiString);
+          case 3: // SHORT
+            final List<ExifShort> values = [];
+            for (int i = 0; i < dataCount; i++) {
+              values
+                  .add(ExifShort(_readUint16(valueBytes, i * 2, isBigEndian)));
+            }
+            return ExifShortArray(values);
+          case 4: // LONG
+            final List<ExifLong> values = [];
+            for (int i = 0; i < dataCount; i++) {
+              values.add(ExifLong(_readUint32(valueBytes, i * 4, isBigEndian)));
+            }
+            return ExifLongArray(values);
+          case 5: // RATIONAL
+            final List<ExifRational> values = [];
+            for (int i = 0; i < dataCount; i++) {
+              values.add(ExifRational(
+                  ExifLong(_readUint32(valueBytes, i * 8, isBigEndian)),
+                  ExifLong(_readUint32(valueBytes, i * 8 + 4, isBigEndian))));
+            }
+            return ExifRationalArray(values);
+          case 7: // UNDEFINED
+            return ExifUndefined(valueBytes); // バイト列として返す
+          case 9: // SLONG
+            final List<ExifSLong> values = [];
+            for (int i = 0; i < dataCount; i++) {
+              values
+                  .add(ExifSLong(_readUint32(valueBytes, i * 4, isBigEndian)));
+            }
+            return ExifSLongArray(values);
+          case 10: // SRATIONAL
+            final List<ExifSRational> values = [];
+            for (int i = 0; i < dataCount; i++) {
+              values.add(ExifSRational(
+                  ExifSLong(_readUint32(valueBytes, i * 8, isBigEndian)),
+                  ExifSLong(_readUint32(valueBytes, i * 8 + 4, isBigEndian))));
+            }
+            return ExifSRationalArray(values);
+          default:
+            return null; // 未知のデータ型
+        }
+      }
+    } catch (e) {
+      return null;
     }
   }
 

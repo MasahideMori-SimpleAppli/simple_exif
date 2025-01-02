@@ -1,5 +1,4 @@
 enum EnumExifType {
-  asciiCode,
   byte,
   short,
   long,

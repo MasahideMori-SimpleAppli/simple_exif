@@ -16,11 +16,11 @@ class ExifByte extends ExifType{
   @override
   String toString() => value.toString();
 
-  // TODO 恐らく修正が必要。
   @override
   Uint8List? toUint8List({Endian endian = Endian.big}) {
-    List<int> r = [value];
-    return Uint8List.fromList(r);
+    ByteData byteData = ByteData(1);
+    byteData.setUint8(0, value);
+    return byteData.buffer.asUint8List();
   }
 
 }
