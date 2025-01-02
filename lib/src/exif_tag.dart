@@ -13,22 +13,9 @@ class ExifTag {
   /// * [value] : The value.
   ExifTag._(this.name, this.value);
 
-  // Tiff Rev 6.0//
+  // Tiff Rev 6.0　//
 
-  /// * [value] : The image description (Image title).
-  factory ExifTag.imageDescription(ExifAsciiCodeArray value) {
-    return ExifTag._('ImageDescription', value);
-  }
-
-  /// * [value] : Camera manufacturer name.
-  factory ExifTag.make(ExifAsciiCodeArray value) {
-    return ExifTag._('Make', value);
-  }
-
-  /// * [value] : Camera model name or model number.
-  factory ExifTag.model(ExifAsciiCodeArray value) {
-    return ExifTag._('Model', value);
-  }
+  // 画像データの構成に関するタグ
 
   /// * [value] : Image orientation.
   /// The value is an integer from 1 to 8, as follows:
@@ -77,6 +64,17 @@ class ExifTag {
     return ExifTag._('Orientation', value);
   }
 
+  /// * [value] : The placement of chroma samples relative to luma samples.
+  ///
+  /// 1 : Center. (Default, YCbCr 4:2:0).
+  ///
+  /// 2 : Co-sited. (YCbCr 4:2:2).
+  ///
+  /// other : Reservation.
+  factory ExifTag.yCbCrPositioning(ExifShort value) {
+    return ExifTag._('YCbCrPositioning', value);
+  }
+
   /// * [value] : The Image X resolution.
   /// Default is 72 (dpi) (ResolutionUnit = 2).
   /// If the resolution is unknown, it must be recorded as 72 dpi.
@@ -98,10 +96,7 @@ class ExifTag {
     return ExifTag._('ResolutionUnit', value);
   }
 
-  /// * [value] : Software used for editing.
-  factory ExifTag.software(ExifAsciiCodeArray value) {
-    return ExifTag._('Software', value);
-  }
+  // その他のタグ
 
   /// The date and time the file was last modified.
   /// * [value] : It will automatically convert it into a string
@@ -118,8 +113,28 @@ class ExifTag {
       return ExifTag._('DateTime', ExifAsciiCodeArray(formatted));
     } else {
       const String unknown = "    :  :     :  :  ";
-      return ExifTag._('name', ExifAsciiCodeArray(unknown));
+      return ExifTag._('DateTime', ExifAsciiCodeArray(unknown));
     }
+  }
+
+  /// * [value] : The image description (Image title).
+  factory ExifTag.imageDescription(ExifAsciiCodeArray value) {
+    return ExifTag._('ImageDescription', value);
+  }
+
+  /// * [value] : Camera manufacturer name.
+  factory ExifTag.make(ExifAsciiCodeArray value) {
+    return ExifTag._('Make', value);
+  }
+
+  /// * [value] : Camera model name or model number.
+  factory ExifTag.model(ExifAsciiCodeArray value) {
+    return ExifTag._('Model', value);
+  }
+
+  /// * [value] : Software used for editing.
+  factory ExifTag.software(ExifAsciiCodeArray value) {
+    return ExifTag._('Software', value);
   }
 
   /// * [value] : Camera owner's name.
@@ -128,28 +143,34 @@ class ExifTag {
     return ExifTag._('Artist', value);
   }
 
-  /// * [value] : The placement of chroma samples relative to luma samples.
+  /// * [value] : The copyright.
+  /// Used to indicate both the photographer and editor copyright holders.
   ///
-  /// 1 : Center. (Default, YCbCr 4:2:0).
+  /// The specifications for writing it are as follows:
   ///
-  /// 2 : Co-sited. (YCbCr 4:2:2).
+  /// e.g. 1. When listing both the photographer and editor
   ///
-  /// other : Reservation.
-  factory ExifTag.yCbCrPositioning(ExifShort value) {
-    return ExifTag._('YCbCrPositioning', value);
+  /// Photographer + NULL [00.H] + Editor + NULL [00.H]
+  ///
+  /// e.g. 2.  When listing only the photographer
+  ///
+  /// Photographer + NULL [00.H]
+  ///
+  /// e.g. 3. When listing only the editor
+  ///
+  /// Space [20.H] + NULL [00.H] + Editor + NULL [00.H]
+  ///
+  /// In this library, the NULL code at the end is automatically inserted by
+  /// the ExifAsciiCodeArray class,
+  /// so please input only the delimiting NULL code as data.
+  ///
+  factory ExifTag.copyright(ExifAsciiCodeArray value) {
+    return ExifTag._('Copyright', value);
   }
 
-  // Exif 2.3 //
+  // Exif IFD (2.3)//
 
-  /// * [value] : Exposure time. The unit is seconds.
-  factory ExifTag.exposureTime(ExifRational value) {
-    return ExifTag._('ExposureTime', value);
-  }
-
-  /// * [value] : Aperture (f-number).
-  factory ExifTag.fNumber(ExifRational value) {
-    return ExifTag._('FNumber', value);
-  }
+  // バージョンに関するタグ
 
   /// * [value] : Exif version number represented as 4-byte fixed-length data
   /// (e.g. 0232 (Exif 2.32)).
@@ -162,17 +183,33 @@ class ExifTag {
     return ExifTag._('ExifVersion', value);
   }
 
-  /// The date and time the photo was taken.
-  /// * [value] : It will automatically convert it into a string
-  /// in the required format (YYYY:MM:DD HH:MM:SS).
-  factory ExifTag.dateTimeOriginal(DateTime value) {
-    final String formatted = value
-        .toIso8601String()
-        .replaceFirst('T', ' ')
-        .split('.')[0]
-        .replaceAll('-', ':');
-    return ExifTag._('DateTimeOriginal', ExifAsciiCodeArray(formatted));
+  /// * [value] : Indicates the version of the Flashpix format that
+  /// the FPXR file supports.
+  /// If the FPXR function is compatible with Flashpix format version 1.0,
+  /// 4-byte ASCII "0100" is recorded. Other values are reserved.
+  factory ExifTag.flashpixVersion(ExifUndefined value) {
+    if (value.count() != 4) {
+      throw ArgumentError("The data length is invalid.");
+    }
+    return ExifTag._('FlashpixVersion', value);
   }
+
+  // 画像データの特性に関するタグ
+
+  /// * [value] : Color space.
+  ///
+  /// Follow the code below:
+  ///
+  /// 1 : sRGB.
+  ///
+  /// 0xFFFF : Uncalibrated.
+  ///
+  /// other : Reservation.
+  factory ExifTag.colorSpace(ExifShort value) {
+    return ExifTag._('ColorSpace', value);
+  }
+
+  // 構造に関するタグ
 
   /// * [value] : The 4-byte ASCII code value.
   ///
@@ -204,6 +241,52 @@ class ExifTag {
     return ExifTag._('ComponentsConfiguration', value);
   }
 
+  /// * [value] : ExifShort or ExifLong type.
+  /// Meaningful Image Width.
+  factory ExifTag.pixelXDimension(ExifType value) {
+    if (value.dataType != EnumExifType.short &&
+        value.dataType != EnumExifType.long) {
+      throw ArgumentError("Only ExifShort or ExifLong are available.");
+    }
+    return ExifTag._('PixelXDimension', value);
+  }
+
+  /// * [value] : ExifShort or ExifLong type.
+  /// Meaningful Image Height.
+  factory ExifTag.pixelYDimension(ExifType value) {
+    if (value.dataType != EnumExifType.short &&
+        value.dataType != EnumExifType.long) {
+      throw ArgumentError("Only ExifShort or ExifLong are available.");
+    }
+    return ExifTag._('PixelYDimension', value);
+  }
+
+  // 日時に関するタグ
+
+  /// The date and time the photo was taken.
+  /// * [value] : It will automatically convert it into a string
+  /// in the required format (YYYY:MM:DD HH:MM:SS).
+  factory ExifTag.dateTimeOriginal(DateTime value) {
+    final String formatted = value
+        .toIso8601String()
+        .replaceFirst('T', ' ')
+        .split('.')[0]
+        .replaceAll('-', ':');
+    return ExifTag._('DateTimeOriginal', ExifAsciiCodeArray(formatted));
+  }
+
+  // 撮影条件に関するタグ
+
+  /// * [value] : Exposure time. The unit is seconds.
+  factory ExifTag.exposureTime(ExifRational value) {
+    return ExifTag._('ExposureTime', value);
+  }
+
+  /// * [value] : Aperture (f-number).
+  factory ExifTag.fNumber(ExifRational value) {
+    return ExifTag._('FNumber', value);
+  }
+
   /// * [value] : Flash status.
   ///
   /// First, consider the bit sequence as follows:
@@ -231,50 +314,6 @@ class ExifTag {
   /// the photographic lens. The unit is mm.
   factory ExifTag.focalLength(ExifRational value) {
     return ExifTag._('FocalLength', value);
-  }
-
-  /// * [value] : Indicates the version of the Flashpix format that
-  /// the FPXR file supports.
-  /// If the FPXR function is compatible with Flashpix format version 1.0,
-  /// 4-byte ASCII "0100" is recorded. Other values are reserved.
-  factory ExifTag.flashpixVersion(ExifUndefined value) {
-    if (value.count() != 4) {
-      throw ArgumentError("The data length is invalid.");
-    }
-    return ExifTag._('FlashpixVersion', value);
-  }
-
-  /// * [value] : Color space.
-  ///
-  /// Follow the code below:
-  ///
-  /// 1 : sRGB.
-  ///
-  /// 0xFFFF : Uncalibrated.
-  ///
-  /// other : Reservation.
-  factory ExifTag.colorSpace(ExifShort value) {
-    return ExifTag._('ColorSpace', value);
-  }
-
-  /// * [value] : ExifShort or ExifLong type.
-  /// Meaningful Image Width.
-  factory ExifTag.pixelXDimension(ExifType value) {
-    if (value.dataType != EnumExifType.short &&
-        value.dataType != EnumExifType.long) {
-      throw ArgumentError("Only ExifShort or ExifLong are available.");
-    }
-    return ExifTag._('PixelXDimension', value);
-  }
-
-  /// * [value] : ExifShort or ExifLong type.
-  /// Meaningful Image Height.
-  factory ExifTag.pixelYDimension(ExifType value) {
-    if (value.dataType != EnumExifType.short &&
-        value.dataType != EnumExifType.long) {
-      throw ArgumentError("Only ExifShort or ExifLong are available.");
-    }
-    return ExifTag._('PixelYDimension', value);
   }
 
   /// * [value] : Follow the code below:
@@ -318,6 +357,20 @@ class ExifTag {
   }
 
   // GPS //
+
+  /// * [value] : Indicates the version of GPSInfoIFD.
+  /// If the GPSInfo tag is included, this tag must be included.
+  /// The byte count must be 4.
+  ///
+  /// default : 2.3.0.0
+  ///
+  /// other : Reservation.
+  factory ExifTag.gpsVersionID(ExifByteArray value){
+    if(value.count() != 4){
+      throw ArgumentError("The data length is invalid.");
+    }
+    return ExifTag._('GPSVersionID', value);
+  }
 
   /// * [value] : GPS latitude reference.
   ///

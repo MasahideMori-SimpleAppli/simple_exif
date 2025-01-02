@@ -31,7 +31,6 @@ class ExifHandler {
   };
 
   /// Exifセグメントを解析して_mapExifDataに格納します。
-  /// Exifセグメントを解析して_mapExifDataに格納します。
   ExifHandler.fromBytes(Uint8List bytes) {
     // バイトデータがJPEGファイルか確認
     if (bytes.length < markerLength || bytes[0] != 0xFF || bytes[1] != 0xD8) {
