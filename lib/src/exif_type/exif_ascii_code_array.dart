@@ -14,7 +14,7 @@ class ExifAsciiCodeArray extends ExifType {
   @override
   Uint8List? toUint8List({Endian endian = Endian.big}) {
     // NULL終端を含めたバイトリストを作成
-    final List<int> r = value.codeUnits;
+    final List<int> r = [...value.codeUnits];
     r.add(0); // NULL終端を追加
     return Uint8List.fromList(r);
   }
