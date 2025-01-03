@@ -5,6 +5,7 @@ import 'package:simple_exif/simple_exif.dart';
 class ExifSLongArray extends ExifType {
   final List<ExifSLong> value;
 
+  /// * [value] : The data.
   ExifSLongArray(this.value) : super(EnumExifType.slongArray);
 
   @override

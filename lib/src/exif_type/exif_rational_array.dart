@@ -5,6 +5,7 @@ import 'package:simple_exif/simple_exif.dart';
 class ExifRationalArray extends ExifType {
   final List<ExifRational> value;
 
+  /// * [value] : The data.
   ExifRationalArray(this.value) : super(EnumExifType.rationalArray);
 
   @override

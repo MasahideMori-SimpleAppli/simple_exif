@@ -4,10 +4,12 @@ import 'package:simple_exif/simple_exif.dart';
 class ExifUndefined extends ExifType {
   late final List<int> value;
 
+  /// * [value] : The data.
   ExifUndefined(this.value) : super(EnumExifType.undefined);
 
   /// Converts an array of ASCII codes to this type.
   /// Unlike ASCII codes, this type does not end with a null code.
+  /// * [v] : The data.
   ExifUndefined.fromASCIICodeArray(
     ExifAsciiCodeArray v,
   ) : super(EnumExifType.undefined) {

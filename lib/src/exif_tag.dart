@@ -6,12 +6,14 @@ import '../simple_exif.dart';
 /// (ja) これは、Exif のタグ情報を取り扱うためのデータクラスです。
 /// このクラスを介することで、よく使われるデフォルトタグを安全に取り扱えます。
 class ExifTag {
-  final String name;
+  final int id;
   final ExifType value;
 
-  /// * [name] : ExifTag name.
-  /// * [value] : The value.
-  ExifTag._(this.name, this.value);
+  /// * [id] : Exif tag id.
+  /// * [value] : Dedicated data type.
+  /// If the data count is 1, use ExifShort, etc.
+  /// If it is 2 or more, use ExifShortArray, etc.
+  ExifTag._(this.id, this.value);
 
   // Tiff Rev 6.0　//
 
@@ -61,7 +63,7 @@ class ExifTag {
   /// viewed by the eye, and the 0th column is to the bottom of the image.
   ///
   factory ExifTag.orientation(ExifShort value) {
-    return ExifTag._('Orientation', value);
+    return ExifTag._(274, value);
   }
 
   /// * [value] : The placement of chroma samples relative to luma samples.
@@ -72,20 +74,20 @@ class ExifTag {
   ///
   /// other : Reservation.
   factory ExifTag.yCbCrPositioning(ExifShort value) {
-    return ExifTag._('YCbCrPositioning', value);
+    return ExifTag._(531, value);
   }
 
   /// * [value] : The Image X resolution.
   /// Default is 72 (dpi) (ResolutionUnit = 2).
   /// If the resolution is unknown, it must be recorded as 72 dpi.
   factory ExifTag.xResolution(ExifRational value) {
-    return ExifTag._('XResolution', value);
+    return ExifTag._(282, value);
   }
 
   /// * [value] : The Image Y resolution.
   /// The same value as XResolution must be recorded.
   factory ExifTag.yResolution(ExifRational value) {
-    return ExifTag._('YResolution', value);
+    return ExifTag._(283, value);
   }
 
   /// * [value] : Resolution unit.
@@ -93,7 +95,7 @@ class ExifTag {
   /// 3 : cm.
   /// other : Reservation.
   factory ExifTag.resolutionUnit(ExifShort value) {
-    return ExifTag._('ResolutionUnit', value);
+    return ExifTag._(296, value);
   }
 
   // その他のタグ
@@ -110,37 +112,37 @@ class ExifTag {
           .replaceFirst('T', ' ')
           .split('.')[0]
           .replaceAll('-', ':');
-      return ExifTag._('DateTime', ExifAsciiCodeArray(formatted));
+      return ExifTag._(306, ExifAsciiCodeArray(formatted));
     } else {
       const String unknown = "    :  :     :  :  ";
-      return ExifTag._('DateTime', ExifAsciiCodeArray(unknown));
+      return ExifTag._(306, ExifAsciiCodeArray(unknown));
     }
   }
 
   /// * [value] : The image description (Image title).
   factory ExifTag.imageDescription(ExifAsciiCodeArray value) {
-    return ExifTag._('ImageDescription', value);
+    return ExifTag._(270, value);
   }
 
   /// * [value] : Camera manufacturer name.
   factory ExifTag.make(ExifAsciiCodeArray value) {
-    return ExifTag._('Make', value);
+    return ExifTag._(271, value);
   }
 
   /// * [value] : Camera model name or model number.
   factory ExifTag.model(ExifAsciiCodeArray value) {
-    return ExifTag._('Model', value);
+    return ExifTag._(272, value);
   }
 
   /// * [value] : Software used for editing.
   factory ExifTag.software(ExifAsciiCodeArray value) {
-    return ExifTag._('Software', value);
+    return ExifTag._(305, value);
   }
 
   /// * [value] : Camera owner's name.
   /// If not listed, it will be treated as unknown.
   factory ExifTag.artist(ExifAsciiCodeArray value) {
-    return ExifTag._('Artist', value);
+    return ExifTag._(315, value);
   }
 
   /// * [value] : The copyright.
@@ -165,7 +167,7 @@ class ExifTag {
   /// so please input only the delimiting NULL code as data.
   ///
   factory ExifTag.copyright(ExifAsciiCodeArray value) {
-    return ExifTag._('Copyright', value);
+    return ExifTag._(33432, value);
   }
 
   // Exif IFD (2.3)//
@@ -180,7 +182,7 @@ class ExifTag {
     if (value.count() != 4) {
       throw ArgumentError("The data length is invalid.");
     }
-    return ExifTag._('ExifVersion', value);
+    return ExifTag._(36864, value);
   }
 
   /// * [value] : Indicates the version of the Flashpix format that
@@ -191,7 +193,7 @@ class ExifTag {
     if (value.count() != 4) {
       throw ArgumentError("The data length is invalid.");
     }
-    return ExifTag._('FlashpixVersion', value);
+    return ExifTag._(40960, value);
   }
 
   // 画像データの特性に関するタグ
@@ -206,7 +208,7 @@ class ExifTag {
   ///
   /// other : Reservation.
   factory ExifTag.colorSpace(ExifShort value) {
-    return ExifTag._('ColorSpace', value);
+    return ExifTag._(40961, value);
   }
 
   // 構造に関するタグ
@@ -238,7 +240,7 @@ class ExifTag {
     if (value.count() != 4) {
       throw ArgumentError("The data length is invalid.");
     }
-    return ExifTag._('ComponentsConfiguration', value);
+    return ExifTag._(37121, value);
   }
 
   /// * [value] : ExifShort or ExifLong type.
@@ -248,7 +250,7 @@ class ExifTag {
         value.dataType != EnumExifType.long) {
       throw ArgumentError("Only ExifShort or ExifLong are available.");
     }
-    return ExifTag._('PixelXDimension', value);
+    return ExifTag._(40962, value);
   }
 
   /// * [value] : ExifShort or ExifLong type.
@@ -258,7 +260,7 @@ class ExifTag {
         value.dataType != EnumExifType.long) {
       throw ArgumentError("Only ExifShort or ExifLong are available.");
     }
-    return ExifTag._('PixelYDimension', value);
+    return ExifTag._(40963, value);
   }
 
   // 日時に関するタグ
@@ -272,19 +274,19 @@ class ExifTag {
         .replaceFirst('T', ' ')
         .split('.')[0]
         .replaceAll('-', ':');
-    return ExifTag._('DateTimeOriginal', ExifAsciiCodeArray(formatted));
+    return ExifTag._(36867, ExifAsciiCodeArray(formatted));
   }
 
   // 撮影条件に関するタグ
 
   /// * [value] : Exposure time. The unit is seconds.
   factory ExifTag.exposureTime(ExifRational value) {
-    return ExifTag._('ExposureTime', value);
+    return ExifTag._(33434, value);
   }
 
   /// * [value] : Aperture (f-number).
   factory ExifTag.fNumber(ExifRational value) {
-    return ExifTag._('FNumber', value);
+    return ExifTag._(33437, value);
   }
 
   /// * [value] : Flash status.
@@ -307,13 +309,13 @@ class ExifTag {
   /// 6 : 0b = No red-eye reduction or unknown. 1b = With red-eye reduction.
   ///
   factory ExifTag.flash(ExifShort value) {
-    return ExifTag._('Flash', value);
+    return ExifTag._(37385, value);
   }
 
   /// * [value] : This indicates the actual focal length of
   /// the photographic lens. The unit is mm.
   factory ExifTag.focalLength(ExifRational value) {
-    return ExifTag._('FocalLength', value);
+    return ExifTag._(37386, value);
   }
 
   /// * [value] : Follow the code below:
@@ -327,7 +329,7 @@ class ExifTag {
   ///
   /// other : Reservation.
   factory ExifTag.exposureMode(ExifShort value) {
-    return ExifTag._('ExposureMode', value);
+    return ExifTag._(41986, value);
   }
 
   /// * [value] : Follow the code below:
@@ -338,7 +340,7 @@ class ExifTag {
   ///
   /// other : Reservation.
   factory ExifTag.whiteBalance(ExifShort value) {
-    return ExifTag._('WhiteBalance', value);
+    return ExifTag._(41987, value);
   }
 
   /// * [value] : Follow the code below:
@@ -353,7 +355,7 @@ class ExifTag {
   ///
   /// other : Reservation.
   factory ExifTag.sceneCaptureType(ExifShort value) {
-    return ExifTag._('SceneCaptureType', value);
+    return ExifTag._(41990, value);
   }
 
   // GPS //
@@ -365,11 +367,11 @@ class ExifTag {
   /// default : 2.3.0.0
   ///
   /// other : Reservation.
-  factory ExifTag.gpsVersionID(ExifByteArray value){
-    if(value.count() != 4){
+  factory ExifTag.gpsVersionID(ExifByteArray value) {
+    if (value.count() != 4) {
       throw ArgumentError("The data length is invalid.");
     }
-    return ExifTag._('GPSVersionID', value);
+    return ExifTag._(0, value);
   }
 
   /// * [value] : GPS latitude reference.
@@ -382,7 +384,7 @@ class ExifTag {
   ///
   /// other : Reservation.
   factory ExifTag.gpsLatitudeRef(ExifAsciiCodeArray value) {
-    return ExifTag._('GPSLatitudeRef', value);
+    return ExifTag._(1, value);
   }
 
   /// * [value] : GPS latitude.
@@ -391,7 +393,7 @@ class ExifTag {
     if (value.count() != 3) {
       throw ArgumentError("The data length is invalid.");
     }
-    return ExifTag._('GPSLatitude', value);
+    return ExifTag._(2, value);
   }
 
   /// * [value] : GPS longitude reference.
@@ -404,7 +406,7 @@ class ExifTag {
   ///
   /// other : Reservation.
   factory ExifTag.gpsLongitudeRef(ExifAsciiCodeArray value) {
-    return ExifTag._('GPSLongitudeRef', value);
+    return ExifTag._(3, value);
   }
 
   /// * [value] : GPS longitude.
@@ -413,7 +415,7 @@ class ExifTag {
     if (value.count() != 3) {
       throw ArgumentError("The data length is invalid.");
     }
-    return ExifTag._('GPSLongitude', value);
+    return ExifTag._(4, value);
   }
 
   /// * [value] : GPS altitude reference
@@ -428,13 +430,13 @@ class ExifTag {
   ///
   /// other : Reservation.
   factory ExifTag.gpsAltitudeRef(ExifByte value) {
-    return ExifTag._('GPSAltitudeRef', value);
+    return ExifTag._(5, value);
   }
 
   /// * [value] : GPS altitude.
   /// The unit is meters.
   factory ExifTag.gpsAltitude(ExifRational value) {
-    return ExifTag._('GPSAltitude', value);
+    return ExifTag._(6, value);
   }
 
   /// * [value] : GPS timestamp. This is UTC(Coordinated Universal Time).
@@ -443,7 +445,7 @@ class ExifTag {
     if (value.count() != 3) {
       throw ArgumentError("The data length is invalid.");
     }
-    return ExifTag._('GPSTimeStamp', value);
+    return ExifTag._(7, value);
   }
 
   /// * [value] : GPS date stamp.
@@ -452,17 +454,15 @@ class ExifTag {
     if (value.count() != 11) {
       throw ArgumentError("The data length is invalid.");
     }
-    return ExifTag._('GPSDateStamp', value);
+    return ExifTag._(29, value);
   }
 
   // custom tag //
 
   /// Create other tag.
-  /// * [tagName] : Exif tag name.
-  /// * [value] : Please note that the format is fixed for each tag name.
-  /// Normally, you should use other constructors.
-  /// I recommend using this constructor only for undefined constructors.
-  factory ExifTag.custom(String tagName, dynamic value) {
-    return ExifTag._(tagName, value);
+  /// * [tagID] : Exif tag id.
+  /// * [value] : Exif tag value.
+  factory ExifTag.custom(int tagID, ExifType value) {
+    return ExifTag._(tagID, value);
   }
 }

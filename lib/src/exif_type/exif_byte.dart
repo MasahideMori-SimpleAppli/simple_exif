@@ -7,6 +7,7 @@ import 'package:simple_exif/src/exif_type/exif_type.dart';
 class ExifByte extends ExifType{
   final int value;
 
+  /// * [value] : The data.
   ExifByte(this.value) : super(EnumExifType.byte) {
     if (value < 0 || value > 255) {
       throw RangeError('Value must be between 0 and 255: $value');

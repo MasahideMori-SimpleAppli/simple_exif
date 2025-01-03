@@ -9,13 +9,26 @@ Please note that it will not be available until development is complete.
 
 ## Overview
 This is a package for reading and modifying the Exif information of JPEG images.  
-Implements required or frequently used features of the Exif 2.3 standard.  
-Please note that non-Exif related formats such as PNG are not supported by this package.  
+This package has been adapted to work with Flutter Web.  
 
-This package has been adapted to work with Flutter Web.
+This package implements the required or most frequently used parts of the Exif 2.3 standard.  
+Note that this package does not cover additional information from other formats such as PNG,
+as they are not part of the Exif standard.  
 
 ## Usage
 Please check out the Examples tab in pub.dev.
+
+This package reads Exif data as ExifTag classes and also supports overwriting Exif data with the appropriate ExifTag classes.
+
+```dart
+
+```
+
+You can also erase Exif data in bulk.
+
+```dart
+
+```
 
 ## Support
 Basically no support.  

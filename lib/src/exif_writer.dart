@@ -42,9 +42,9 @@ class ExifWriter {
   /// ファイル本体の情報は更新しません。
   /// 編集後のファイルを得るにはsaveメソッドを呼び出してください。
   ///
-  /// * [tagName] : Target tag name.
-  void removeTag(String tagName) {
-    _handler.removeTag(tagName);
+  /// * [tagID] : Target tag id.
+  void removeTag(int tagID) {
+    _handler.removeTag(tagID);
   }
 
   /// (en) Delete all Exif data.
@@ -73,6 +73,7 @@ class ExifWriter {
     return _replaceExifSegment(_imgBytes, newExifBytes);
   }
 
+  // TODO 修正中。
   /// JPEGデータのExifセグメントを置き換えるヘルパーメソッド
   Uint8List _replaceExifSegment(Uint8List imgBytes, Uint8List? newExifBytes) {
     const soiMarker = [0xFF, 0xD8]; // JPEGファイルの先頭マーカー

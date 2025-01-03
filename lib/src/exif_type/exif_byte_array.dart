@@ -5,6 +5,7 @@ import 'package:simple_exif/simple_exif.dart';
 class ExifByteArray extends ExifType {
   final List<ExifByte> value;
 
+  /// * [value] : The data.
   ExifByteArray(this.value) : super(EnumExifType.byteArray);
 
   @override

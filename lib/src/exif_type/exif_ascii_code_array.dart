@@ -4,7 +4,9 @@ import 'package:simple_exif/simple_exif.dart';
 class ExifAsciiCodeArray extends ExifType {
   final String value;
 
-  ExifAsciiCodeArray(this.value) : super(EnumExifType.asciiCodeArray);
+  /// * [value] : The data.
+  ExifAsciiCodeArray(this.value)
+      : super(EnumExifType.asciiCodeArray);
 
   @override
   String toString() => value;
