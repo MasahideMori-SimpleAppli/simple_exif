@@ -311,6 +311,7 @@ class ExifHandler {
 
   /// 現在保持しているExifデータをUint8List形式に戻します。
   /// つまり、このクラス内に格納された情報からExifセグメントを再構成します。
+  /// 戻り値にはExif識別子とTiffデータのみが含まれ、APP1マーカーやセグメント長は含まれません。
   /// * [endian] : Endianness when writing.
   Uint8List? toBytes({Endian endian = Endian.big}) {
     if (_exifData.isEmpty) {
@@ -364,10 +365,8 @@ class ExifHandler {
     tiffData.add(ifdEntries.toBytes());
     tiffData.add(dataBlock.toBytes());
 
-    // 4. APP1セグメントを作成し、データを結合して返す。
+    // 4. 必要なデータを結合して返す。
     final exifSegment = BytesBuilder();
-    exifSegment.add([0xFF, 0xE1]); // APP1マーカー
-    exifSegment.add(_writeUint16(tiffData.length + 2 + 6)); // セグメント長
     exifSegment.add(Uint8List.fromList('Exif\x00\x00'.codeUnits)); // Exif識別子
     exifSegment.add(tiffData.toBytes()); // TIFFデータ
 

@@ -67,40 +67,32 @@ class ExifWriter {
   /// (ja) このクラスのメソッドによって編集されたExif情報を持つ
   /// 画像データを取得します。
   Uint8List save() {
-    // Exif情報を書き換えた新しいバイトデータを生成する。消去済みならnullが入る。
+    // newExifBytesの内容はExif識別子 + TIFFデータのみ。
     final Uint8List? newExifBytes = _handler.toBytes();
-    // 元のJPEGデータに新しいExifセグメントを埋め込んで返す。
-    return _replaceExifSegment(_imgBytes, newExifBytes);
-  }
-
-  // TODO 修正中。
-  /// JPEGデータのExifセグメントを置き換えるヘルパーメソッド
-  Uint8List _replaceExifSegment(Uint8List imgBytes, Uint8List? newExifBytes) {
     const soiMarker = [0xFF, 0xD8]; // JPEGファイルの先頭マーカー
     const app1Marker = [0xFF, 0xE1]; // Exifセグメントのマーカー
     // JPEGの先頭が正しいか確認
-    if (imgBytes.length < 4 ||
-        imgBytes[0] != soiMarker[0] ||
-        imgBytes[1] != soiMarker[1]) {
+    if (_imgBytes.length < 4 ||
+        _imgBytes[0] != soiMarker[0] ||
+        _imgBytes[1] != soiMarker[1]) {
       throw const FormatException('Invalid JPEG file format');
     }
-    // APP1セグメントを探す
     int offset = 2; // SOIの直後から探索開始
-    while (offset < imgBytes.length - 4) {
+    while (offset < _imgBytes.length - 4) {
       // マーカーを確認
-      if (imgBytes[offset] == app1Marker[0] &&
-          imgBytes[offset + 1] == app1Marker[1]) {
+      if (_imgBytes[offset] == app1Marker[0] &&
+          _imgBytes[offset + 1] == app1Marker[1]) {
         // APP1セグメントの長さを取得 (2バイト)
-        int segmentLength = (imgBytes[offset + 2] << 8) | imgBytes[offset + 3];
+        int segmentLength = (_imgBytes[offset + 2] << 8) | _imgBytes[offset + 3];
         // APP1セグメント前後を取得
-        final beforeExif = imgBytes.sublist(0, offset); // APP1セグメント前
+        final beforeExif = _imgBytes.sublist(0, offset); // APP1セグメント前
         final afterExif =
-            imgBytes.sublist(offset + 2 + segmentLength); // APP1セグメント後
+        _imgBytes.sublist(offset + 2 + segmentLength); // APP1セグメント後
         // Exifデータがnullの場合はExifセグメントを削除したデータを返す。
         if (newExifBytes == null) {
           return Uint8List.fromList([...beforeExif, ...afterExif]);
         }
-        // APP1マーカー + 新しいセグメント長 + 新しいExifデータを生成
+        // 新しいAPP1セグメントを生成 (APP1マーカー + セグメント長 + Exif識別子 + TIFFデータ)
         final newSegmentLength = newExifBytes.length + 2; // マーカーを含めるため+2
         final newSegment = [
           app1Marker[0],
@@ -117,15 +109,15 @@ class ExifWriter {
         ]);
       }
       // 次のセグメントへ移動
-      int segmentLength = (imgBytes[offset + 2] << 8) | imgBytes[offset + 3];
+      int segmentLength = (_imgBytes[offset + 2] << 8) | _imgBytes[offset + 3];
       offset += 2 + segmentLength; // マーカー + 長さ分をスキップ
     }
-    // APP1セグメントが見つからなかった場合の処理。
+    // APP1セグメントが見つからなかった場合の処理
     if (newExifBytes == null) {
       // Exifを削除する場合はそのまま返却
-      return imgBytes;
+      return _imgBytes;
     } else {
-      // Exifを追加する場合の処理
+      // 新しいAPP1セグメントを生成
       final newSegmentLength = newExifBytes.length + 2; // マーカーを含めるため+2
       final newSegment = [
         app1Marker[0],
@@ -136,10 +128,11 @@ class ExifWriter {
       ];
       // SOIマーカー直後にExifセグメントを挿入したファイルを返す。
       return Uint8List.fromList([
-        ...imgBytes.sublist(0, 2), // SOIマーカー
+        ..._imgBytes.sublist(0, 2), // SOIマーカー
         ...newSegment,
-        ...imgBytes.sublist(2), // 残りのデータ
+        ..._imgBytes.sublist(2), // 残りのデータ
       ]);
     }
   }
+
 }
