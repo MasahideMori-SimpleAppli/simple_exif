@@ -5,8 +5,7 @@ class ExifAsciiCodeArray extends ExifType {
   final String value;
 
   /// * [value] : The data.
-  ExifAsciiCodeArray(this.value)
-      : super(EnumExifType.asciiCodeArray);
+  ExifAsciiCodeArray(this.value) : super(EnumExifType.asciiCodeArray);
 
   @override
   String toString() => value;

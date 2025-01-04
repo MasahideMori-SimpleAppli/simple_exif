@@ -31,7 +31,7 @@ class ExifShortArray extends ExifType {
 
   /// The Exif tag count.
   @override
-  int count(){
+  int count() {
     return value.length;
   }
 }

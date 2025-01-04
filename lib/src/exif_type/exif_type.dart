@@ -18,12 +18,12 @@ class ExifType {
   /// Convert it to bytecode and return it.
   /// If there is no value, null is returned.
   /// * [endian] : big or small. default is big.
-  Uint8List? toUint8List({Endian endian = Endian.big}){
+  Uint8List? toUint8List({Endian endian = Endian.big}) {
     return null;
   }
 
   /// The Exif tag count.
-  int count(){
+  int count() {
     return 1;
   }
 }

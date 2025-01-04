@@ -83,11 +83,12 @@ class ExifWriter {
       if (_imgBytes[offset] == app1Marker[0] &&
           _imgBytes[offset + 1] == app1Marker[1]) {
         // APP1セグメントの長さを取得 (2バイト)
-        int segmentLength = (_imgBytes[offset + 2] << 8) | _imgBytes[offset + 3];
+        int segmentLength =
+            (_imgBytes[offset + 2] << 8) | _imgBytes[offset + 3];
         // APP1セグメント前後を取得
         final beforeExif = _imgBytes.sublist(0, offset); // APP1セグメント前
         final afterExif =
-        _imgBytes.sublist(offset + 2 + segmentLength); // APP1セグメント後
+            _imgBytes.sublist(offset + 2 + segmentLength); // APP1セグメント後
         // Exifデータがnullの場合はExifセグメントを削除したデータを返す。
         if (newExifBytes == null) {
           return Uint8List.fromList([...beforeExif, ...afterExif]);
@@ -134,5 +135,4 @@ class ExifWriter {
       ]);
     }
   }
-
 }

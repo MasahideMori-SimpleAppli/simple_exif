@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import '../../simple_exif.dart';
 
-class ExifSLong extends ExifType{
+class ExifSLong extends ExifType {
   final int value;
 
   /// * [value] : The long type number.

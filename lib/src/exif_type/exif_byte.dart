@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import '../../simple_exif.dart';
 
 /// BYTE (0〜255)
-class ExifByte extends ExifType{
+class ExifByte extends ExifType {
   final int value;
 
   /// * [value] : The data.
@@ -21,5 +21,4 @@ class ExifByte extends ExifType{
     byteData.setUint8(0, value);
     return byteData.buffer.asUint8List();
   }
-
 }

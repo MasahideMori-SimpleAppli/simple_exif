@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import '../../simple_exif.dart';
 
-class ExifShort extends ExifType{
+class ExifShort extends ExifType {
   final int value;
 
   /// * [value] : 0〜65535 (16bit).

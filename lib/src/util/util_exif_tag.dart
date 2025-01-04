@@ -22,7 +22,7 @@ class UtilExifTag {
 
   // key : tag name.
   // value : tag id (dec).
-  static Map<String, int> _tagNameToIDofTIFF6_0 = {
+  static final Map<String, int> _tagNameToIDofTIFF6_0 = {
     "ImageWidth": 256,
     "ImageLength": 257,
     "BitsPerSample": 258,
@@ -57,13 +57,13 @@ class UtilExifTag {
 
   // key : tag id (dec).
   // value : tag name.
-  static Map<int, String> _reversedTagNameToIDofTIFF6_0 = {
+  static final Map<int, String> _reversedTagNameToIDofTIFF6_0 = {
     for (var entry in _tagNameToIDofTIFF6_0.entries) entry.value: entry.key
   };
 
   // key : tag name.
   // value : tag id (dec).
-  static Map<String, int> _tagNameToIDofExif2_3 = {
+  static final Map<String, int> _tagNameToIDofExif2_3 = {
     "ExifVersion": 36864,
     "FlashpixVersion": 40960,
     "ColorSpace": 40961,
@@ -137,13 +137,13 @@ class UtilExifTag {
 
   // key : tag id (dec).
   // value : tag name.
-  static Map<int, String> _reversedTagNameToIDofExif2_3 = {
+  static final Map<int, String> _reversedTagNameToIDofExif2_3 = {
     for (var entry in _tagNameToIDofExif2_3.entries) entry.value: entry.key
   };
 
   // key : tag name.
   // value : tag id (dec).
-  static Map<String, int> _tagNameToIDofGPS = {
+  static final Map<String, int> _tagNameToIDofGPS = {
     'GPSVersionID': 0,
     'GPSLatitudeRef': 1,
     'GPSLatitude': 2,
@@ -180,7 +180,7 @@ class UtilExifTag {
 
   // key : tag id (dec).
   // value : tag name.
-  static Map<int, String> _reversedTagNameToIDofGPS = {
+  static final Map<int, String> _reversedTagNameToIDofGPS = {
     for (var entry in _tagNameToIDofGPS.entries) entry.value: entry.key
   };
 }
