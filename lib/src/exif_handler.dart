@@ -27,9 +27,11 @@ class ExifHandler {
     3: 2, // SHORT
     4: 4, // LONG
     5: 8, // RATIONAL (2 LONG values: numerator and denominator)
-    7: 1, // UNDEFINED (Equal ASCII)
+    7: 1, // UNDEFINED (Tag-specific bytecode)
     9: 4, // SLONG
     10: 8, // SRATIONAL
+    11: 4, // FLOAT (TIFF)
+    12: 8, // Double (TIFF)
   };
 
   /// Exifセグメントを解析して_mapExifDataに格納します。
@@ -129,6 +131,18 @@ class ExifHandler {
     }
   }
 
+  /// ヘルパー関数: 32ビットの浮動小数点値を読み取る
+  double _readFloat32(Uint8List data, int offset, bool isBigEndian) {
+    ByteData byteData = ByteData.sublistView(data, offset, offset + 4);
+    return byteData.getFloat32(0, isBigEndian ? Endian.big : Endian.little);
+  }
+
+  /// ヘルパー関数: 64ビットの浮動小数点値を読み取る
+  double _readFloat64(Uint8List data, int offset, bool isBigEndian) {
+    ByteData byteData = ByteData.sublistView(data, offset, offset + 8);
+    return byteData.getFloat64(0, isBigEndian ? Endian.big : Endian.little);
+  }
+
   /// タグIDを読み取って返します。
   /// * [exifSegment] : Exifセグメント全体（Exif情報のみ）のバイトコード。
   /// * [entryOffset] : タグの格納されているオフセット。
@@ -196,6 +210,10 @@ class ExifHandler {
             return ExifSRational(
                 ExifSLong(_readUint32(valueBytes, 0, isBigEndian)),
                 ExifSLong(_readUint32(valueBytes, 4, isBigEndian)));
+          case 11: // FLOAT
+            return ExifFloat(_readFloat32(valueBytes, 0, isBigEndian));
+          case 12: //DOUBLE
+            return ExifDouble(_readFloat64(valueBytes, 0, isBigEndian));
           default:
             return null; // 未知のデータ型
         }
@@ -250,6 +268,20 @@ class ExifHandler {
                   ExifSLong(_readUint32(valueBytes, i * 8 + 4, isBigEndian))));
             }
             return ExifSRationalArray(values);
+          case 11: // FLOAT
+            final List<ExifFloat> values = [];
+            for (int i = 0; i < dataCount; i++) {
+              values
+                  .add(ExifFloat(_readFloat32(valueBytes, i * 4, isBigEndian)));
+            }
+            return ExifFloatArray(values);
+          case 12: //DOUBLE
+            final List<ExifDouble> values = [];
+            for (int i = 0; i < dataCount; i++) {
+              values.add(
+                  ExifDouble(_readFloat64(valueBytes, i * 8, isBigEndian)));
+            }
+            return ExifDoubleArray(values);
           default:
             return null; // 未知のデータ型
         }

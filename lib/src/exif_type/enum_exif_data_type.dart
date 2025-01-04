@@ -13,13 +13,18 @@ enum EnumExifType {
   longArray,
   rationalArray,
   slongArray,
-  srationalArray
+  srationalArray,
+  // tiff only tags
+  float,
+  double,
+  floatArray,
+  doubleArray,
 }
 
-extension ExtEnumExifType on EnumExifType{
+extension ExtEnumExifType on EnumExifType {
   /// Convert to int value of Exif data type.
-  int toInt(){
-    switch(this){
+  int toInt() {
+    switch (this) {
       case EnumExifType.byte:
       case EnumExifType.byteArray:
         return 1;
@@ -42,7 +47,12 @@ extension ExtEnumExifType on EnumExifType{
       case EnumExifType.srational:
       case EnumExifType.srationalArray:
         return 10;
+      case EnumExifType.float:
+      case EnumExifType.floatArray:
+        return 11;
+      case EnumExifType.double:
+      case EnumExifType.doubleArray:
+        return 12;
     }
   }
-
 }

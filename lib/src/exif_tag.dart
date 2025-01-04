@@ -474,6 +474,7 @@ class ExifTag {
       "ClassName": "ExifTag",
       "TagID": id,
       "TagName": tagName ?? "Unsupported value",
+      "TagValueType": value.dataType.name,
       "TagValue": value.toString()
     };
   }
