@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:simple_exif/simple_exif.dart';
+import '../../simple_exif.dart';
 
 /// (en) This is an inner class that analyzes, stores and
 /// manipulates the entire Exif data.
@@ -34,27 +34,32 @@ class ExifHandler {
 
   /// Exifセグメントを解析して_mapExifDataに格納します。
   ExifHandler.fromBytes(Uint8List bytes) {
-    // バイトデータがJPEGファイルか確認
+    // JPEGファイル形式の最小要件を確認し、JPEG以外ならエラーを出す。
     if (bytes.length < markerLength || bytes[0] != 0xFF || bytes[1] != 0xD8) {
       throw ArgumentError('Invalid JPEG file.');
     }
     int offset = markerLength; // SOIマーカーの次から解析を開始
     while (offset < bytes.length) {
-      if (bytes[offset] != 0xFF) {
-        throw ArgumentError('Invalid marker at offset $offset.');
+      // 最低限のバリデーション: マーカーがJPEG仕様に準拠しているかのチェック
+      if (offset + markerLength >= bytes.length || bytes[offset] != 0xFF) {
+        // セグメントが正しくない場合はExifが無いと見なして終了する。
+        return;
       }
       int marker = bytes[offset + 1];
-      int segmentLength = _readUint16(bytes, offset + markerLength, true);
-      // APP1セグメントか確認
+      int segmentLength = _readUint16(bytes, offset + 2, true);
+      // セグメント長がファイルサイズを超えないか確認
+      if (offset + markerLength + segmentLength > bytes.length) {
+        // 不正なセグメント長の場合は終了する。
+        return;
+      }
+      // APP1セグメントを探す
       if (marker == 0xE1) {
-        // EXIFヘッダーをチェック
-        if (String.fromCharCodes(bytes.sublist(
-                offset + markerLength + segmentLengthBytes,
-                offset +
-                    markerLength +
-                    segmentLengthBytes +
-                    exifIdentifierLength)) ==
-            'Exif\x00\x00') {
+        // APP1セグメントのExifヘッダーを確認
+        final exifHeader = bytes.sublist(
+            offset + markerLength + segmentLengthBytes,
+            offset + markerLength + segmentLengthBytes + exifIdentifierLength);
+        if (String.fromCharCodes(exifHeader) == 'Exif\x00\x00') {
+          // Exifデータを解析して終了する
           _parseExifSegment(bytes.sublist(offset + tiffHeaderOffset,
               offset + tiffHeaderOffset + segmentLength - segmentLengthBytes));
           return;
@@ -63,7 +68,8 @@ class ExifHandler {
       // 次のセグメントに進む
       offset += markerLength + segmentLength;
     }
-    throw ArgumentError('No EXIF data found.');
+    // Exifが見つからない場合は単に終了する。
+    return;
   }
 
   /// Exifセグメントを解析し、_exifDataに格納する

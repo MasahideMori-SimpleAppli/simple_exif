@@ -1,8 +1,5 @@
 import 'dart:typed_data';
-
-import 'package:simple_exif/src/exif_type/enum_exif_data_type.dart';
-import 'package:simple_exif/src/exif_type/exif_slong.dart';
-import 'package:simple_exif/src/exif_type/exif_type.dart';
+import '../../simple_exif.dart';
 
 class ExifSRational extends ExifType {
   final ExifSLong numerator;

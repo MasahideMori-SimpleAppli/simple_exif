@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:simple_exif/simple_exif.dart';
+import '../../simple_exif.dart';
 
 class ExifUndefined extends ExifType {
   late final List<int> value;

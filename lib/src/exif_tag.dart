@@ -461,8 +461,23 @@ class ExifTag {
 
   /// Create other tag.
   /// * [tagID] : Exif tag id.
+  /// You can use the UtilExifTag class to get the ID from the name.
   /// * [value] : Exif tag value.
   factory ExifTag.custom(int tagID, ExifType value) {
     return ExifTag._(tagID, value);
   }
+
+  /// Convert data to map format.
+  Map<String, dynamic> toDict() {
+    String? tagName = UtilExifTag.getTagNameFromID(id);
+    return {
+      "ClassName": "ExifTag",
+      "TagID": id,
+      "TagName": tagName ?? "Unsupported value",
+      "TagValue": value.toString()
+    };
+  }
+
+  @override
+  String toString() => toDict().toString();
 }

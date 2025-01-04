@@ -1,5 +1,6 @@
 import 'dart:typed_data';
-import 'package:simple_exif/src/exif_type/enum_exif_data_type.dart';
+
+import '../../simple_exif.dart';
 
 /// (en) This is the parent class for each Exif tag data.
 /// It forces child classes to have the data type defined in Enum.

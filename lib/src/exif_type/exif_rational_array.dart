@@ -1,6 +1,5 @@
 import 'dart:typed_data';
-
-import 'package:simple_exif/simple_exif.dart';
+import '../../simple_exif.dart';
 
 class ExifRationalArray extends ExifType {
   final List<ExifRational> value;
