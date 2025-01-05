@@ -1,3 +1,9 @@
+/// (en) Definition of the data types used by TIFF and Exif.
+/// However, in this package, anything with a count greater than 1
+/// is defined as an array type.
+///
+/// (ja) TIFF及びExifで取り扱われるデータ型の定義。
+/// ただし、このパッケージではカウントが１以上のものは配列型として定義しています。
 enum EnumExifType {
   byte,
   short,

@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'package:test_all/src/enum/enum_ifd_type.dart';
+
 import '../../simple_exif.dart';
 
 /// (en) This is an inner class that analyzes, stores and
@@ -81,14 +83,24 @@ class ExifHandler {
     bool isBigEndian = String.fromCharCodes(exifSegment.sublist(0, 2)) == 'MM';
     // オフセットを計算
     int ifdOffset = _readUint32(exifSegment, 4, isBigEndian);
-    // IFD（Image File Directory）の解析
-    _parseIFD(exifSegment, ifdOffset, isBigEndian);
+    // IFD（Image File Directory）の解析。最初はTIFF領域からになる。
+    _parseIFD(exifSegment, ifdOffset, isBigEndian, EnumIFDType.tiff);
   }
 
   /// IFDを解析してタグを取得
   /// * [exifSegment] : Exifセグメント全体（Exif情報のみ）のバイトコード。
-  void _parseIFD(Uint8List exifSegment, int offset, bool isBigEndian) {
+  /// * [offset] : 読み取り開始オフセット。
+  /// * [isBigEndian] : エンディアン情報。
+  /// * [idfType] : IFDの種類。これを正しく設定することで、保存時に正しい位置にデータを格納可能になる。
+  void _parseIFD(Uint8List exifSegment, int offset, bool isBigEndian,
+      EnumIFDType ifdType) {
     final int numberOfEntries = _readUint16(exifSegment, offset, isBigEndian);
+    // Exif IFD Pointer (tag ID: 34665) のオフセット
+    int? exifIFDOffset;
+    // GPS Info IFD Pointer (tag ID: 34853) のオフセット
+    int? gpsInfoOffset;
+    // Interoperability IFD Pointer (tag ID: 40965) のオフセット
+    int? interoperabilityOffset;
     for (int i = 0; i < numberOfEntries; i++) {
       final int entryOffset = offset + 2 + (i * 12);
       final int tagID = _readTagID(exifSegment, entryOffset, isBigEndian);
@@ -98,6 +110,34 @@ class ExifHandler {
       if (tagValue != null) {
         _exifData[tagID] = tagValue;
       }
+      // Exif IFD Pointer を確認し、存在する場合は追加処理を行うために位置をバッファする。
+      if (tagID == 34665) {
+        exifIFDOffset =
+            _readUint32(exifSegment, entryOffset + 8, isBigEndian); // ポインター取得
+      }
+      // GPS Info IFD Pointer を確認し、存在する場合は追加処理を行うために位置をバッファする。
+      if (tagID == 34853) {
+        gpsInfoOffset =
+            _readUint32(exifSegment, entryOffset + 8, isBigEndian); // ポインター取得
+      }
+      // Interoperability IFD Pointer を確認し、存在する場合は追加処理を行うために位置をバッファする。
+      if (tagID == 40965) {
+        interoperabilityOffset =
+            _readUint32(exifSegment, entryOffset + 8, isBigEndian); // ポインター取得
+      }
+    }
+    // Exif IFD Pointerが存在する場合は再帰的に解析
+    if (exifIFDOffset != null) {
+      _parseIFD(exifSegment, exifIFDOffset, isBigEndian, EnumIFDType.exif);
+    }
+    // GPS Info IFD Pointerが存在する場合は再帰的に解析
+    if (gpsInfoOffset != null) {
+      _parseIFD(exifSegment, gpsInfoOffset, isBigEndian, EnumIFDType.gps);
+    }
+    // Interoperability IFD Pointerが存在する場合は再帰的に解析
+    if (interoperabilityOffset != null) {
+      _parseIFD(exifSegment, interoperabilityOffset, isBigEndian,
+          EnumIFDType.interoperability);
     }
   }
 
@@ -355,7 +395,7 @@ class ExifHandler {
     if (_exifData.isEmpty) {
       return null; // データがない場合はnullを返す
     }
-    // 1. TIFFヘッダーを作成する
+    // 1. TIFFヘッダーを作成
     final tiffHeader = BytesBuilder();
     tiffHeader
         .add(endian == Endian.big ? [0x4D, 0x4D] : [0x49, 0x49]); // MMまたはII
@@ -363,7 +403,7 @@ class ExifHandler {
         .add(endian == Endian.big ? [0x00, 0x2A] : [0x2A, 0x00]); // マジックナンバー
     tiffHeader.add([0x00, 0x00, 0x00, 0x08]); // IFDの開始位置
 
-    // 2. IFDエントリを作成する
+    // 2. 0th IFDエントリを作成
     final ifdEntries = BytesBuilder();
     final dataBlock = BytesBuilder();
     int dataOffset = tiffHeader.length +
@@ -371,11 +411,17 @@ class ExifHandler {
         _exifData.length * 12 +
         4; // TIFFヘッダー + エントリ数 + IFDエントリ + 終端
 
+    int? exifIFDPointerOffset;
     for (MapEntry<int, ExifType> entry in _exifData.entries) {
       final int tagID = entry.key;
       final ExifType tagValue = entry.value;
       final Uint8List? tagBytes = tagValue.toUint8List(endian: endian);
-      if (tagBytes != null) {
+
+      if (tagID == 0x8769) {
+        // Exif IFD Pointerのオフセットを計算
+        exifIFDPointerOffset = dataOffset;
+      } else if (tagBytes != null) {
+        // 通常のタグエントリ
         final int dataType = tagValue.dataType.toInt();
         final int dataCount =
             tagBytes.length ~/ ExifHandler.dataTypeSize[dataType]!;
@@ -393,20 +439,28 @@ class ExifHandler {
       }
     }
 
-    // 終端マーカー（次のIFDのオフセット、通常は0）
-    ifdEntries.add([0x00, 0x00, 0x00, 0x00]);
+    // TODO IFDセグメントの種類ごとに保存位置を調整しながら保存する。
 
-    // 3. バイト列を結合する
+    // 3. Exif IFDセグメントを作成
+    if (exifIFDPointerOffset != null) {
+      final exifIfdEntries = BytesBuilder();
+      // TODO 必要なExif IFDエントリを追加する処理
+      // ...
+
+      // Exif IFDをデータブロックに追加
+      dataBlock.add(exifIfdEntries.toBytes());
+    }
+
+    // 4. TIFFデータを結合して返す
     final tiffData = BytesBuilder();
     tiffData.add(tiffHeader.toBytes());
     tiffData.add(_writeUint16(_exifData.length)); // IFDエントリ数
     tiffData.add(ifdEntries.toBytes());
     tiffData.add(dataBlock.toBytes());
 
-    // 4. 必要なデータを結合して返す。
     final exifSegment = BytesBuilder();
     exifSegment.add(Uint8List.fromList('Exif\x00\x00'.codeUnits)); // Exif識別子
-    exifSegment.add(tiffData.toBytes()); // TIFFデータ
+    exifSegment.add(tiffData.toBytes());
 
     return exifSegment.toBytes();
   }

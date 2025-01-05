@@ -1,4 +1,4 @@
-export 'enum_exif_data_type.dart';
+export '../enum/enum_exif_data_type.dart';
 export 'exif_ascii_code_array.dart';
 export 'exif_byte.dart';
 export 'exif_byte_array.dart';
