@@ -5,27 +5,27 @@
 開発完了までは利用できませんので注意してください。
 
 ## 概要
-これは、JPEG画像のExif情報を読み取ったり、変更するためのパッケージです。  
+これは、JPEG画像のExif情報を読み取るためのパッケージです。  
 このパッケージはFlutter Webでも動作するように調整されています。  
 
 このパッケージでは、Exif 2.3規格のうち、必須のもの、または利用頻度が高いものについて実装しています。  
-なお、PNGなどの他のフォーマットの付加情報については、Exif規格ではないためこのパッケージでは扱いません。
+なお、PNGなどの他のフォーマットの付加情報については、Exif規格ではないためこのパッケージでは扱いません。  
+
+現在の実装状況は以下の通りです。  
+IFDの書き換えについても開発中で、今後サポートされる可能性があります。
+
+- [x] 0th IFDの内容(TIFF)の読み取り
+- [x] 0th IFDの内容(Exif)の読み取り
+- [x] 0th IFDの内容(Interoperability)の読み取り
+- [x] 0th IFDの内容(GPS)の読み取り
+- [ ] 0th IFDの内容(TIFF)の書き換え、追加、削除
+- [ ] 0th IFDの内容(Exif)の書き換え、追加、削除
+- [ ] 0th IFDの内容(Interoperability)の書き換え、追加、削除
+- [ ] 0th IFDの内容(GPS)の書き換え、追加、削除
+- [ ] Exif情報の一括削除
 
 ## 使い方
 pub.devのExampleタブをチェックしてください。
-
-このパッケージでは、ExifのデータはExifTagクラスとして読み取られ、
-適切なExifTagクラスでのExifデータの上書きもサポートされます。
-
-```dart
-
-```
-
-また、Exifのデータをまとめて消去することもできます。
-
-```dart
-
-```
 
 ## サポート
 基本的にサポートはありません。
@@ -45,7 +45,7 @@ pub.devのExampleタブをチェックしてください。
 ## ライセンス
 このソフトウェアはApache-2.0ライセンスの元配布されます。LICENSEファイルの内容をご覧ください。
 
-Copyright 2024 Masahide Mori
+Copyright 2025 Masahide Mori
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

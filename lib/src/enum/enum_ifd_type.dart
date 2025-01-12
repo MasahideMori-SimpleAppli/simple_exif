@@ -2,8 +2,9 @@
 ///
 /// (ja) 各タグの所属するIFDのタイプの定義。
 enum EnumIFDType {
-  tiff,
+  tiff, // 0th IFD
   exif,
+  interoperability, // IO IFD
   gps,
-  interoperability
+  first // 1st IFD
 }

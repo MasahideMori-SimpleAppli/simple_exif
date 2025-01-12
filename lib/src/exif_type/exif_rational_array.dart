@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 import '../../simple_exif.dart';
 
-class ExifRationalArray extends ExifType {
+class ExifRationalArray extends ExifDataType {
   final List<ExifRational> value;
 
   /// * [value] : The data.
-  ExifRationalArray(this.value) : super(EnumExifType.rationalArray);
+  ExifRationalArray(this.value) : super(EnumExifDataType.rationalArray);
 
   @override
   String toString() {
@@ -21,7 +21,7 @@ class ExifRationalArray extends ExifType {
   }
 
   @override
-  Uint8List? toUint8List({Endian endian = Endian.big}) {
+  Uint8List toUint8List({Endian endian = Endian.big}) {
     ByteData byteData = ByteData(value.length * 8);
     // 各要素をセット
     for (int i = 0; i < value.length; i++) {
@@ -36,5 +36,14 @@ class ExifRationalArray extends ExifType {
   @override
   int count() {
     return value.length;
+  }
+
+  @override
+  ExifDataType deepCopy() {
+    List<ExifRational> r = [];
+    for (ExifRational i in value) {
+      r.add(i.deepCopy() as ExifRational);
+    }
+    return ExifRationalArray(r);
   }
 }

@@ -1,20 +1,19 @@
 import 'dart:typed_data';
 import '../../simple_exif.dart';
 
-class ExifUndefined extends ExifType {
+class ExifUndefined extends ExifDataType {
   late final List<int> value;
 
   /// * [value] : The data.
-  ExifUndefined(this.value) : super(EnumExifType.undefined);
+  ExifUndefined(this.value) : super(EnumExifDataType.undefined);
 
   /// Converts an array of ASCII codes to this type.
   /// Unlike ASCII codes, this type does not end with a null code.
   /// * [v] : The data.
   ExifUndefined.fromASCIICodeArray(
     ExifAsciiCodeArray v,
-  ) : super(EnumExifType.undefined) {
-    final Uint8List? ascii = v.toUint8List();
-    List<int> r = ascii != null ? v.toUint8List()!.toList() : [];
+  ) : super(EnumExifDataType.undefined) {
+    List<int> r = v.toUint8List().toList();
     if (r.isNotEmpty) {
       r.removeLast();
     }
@@ -25,7 +24,7 @@ class ExifUndefined extends ExifType {
   String toString() => String.fromCharCodes(value);
 
   @override
-  Uint8List? toUint8List({Endian endian = Endian.big}) {
+  Uint8List toUint8List({Endian endian = Endian.big}) {
     return Uint8List.fromList(value);
   }
 
@@ -33,5 +32,10 @@ class ExifUndefined extends ExifType {
   @override
   int count() {
     return value.length;
+  }
+
+  @override
+  ExifDataType deepCopy() {
+    return ExifUndefined([...value]);
   }
 }

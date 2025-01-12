@@ -4,7 +4,7 @@
 ///
 /// (ja) TIFF及びExifで取り扱われるデータ型の定義。
 /// ただし、このパッケージではカウントが１以上のものは配列型として定義しています。
-enum EnumExifType {
+enum EnumExifDataType {
   byte,
   short,
   long,
@@ -27,37 +27,37 @@ enum EnumExifType {
   doubleArray,
 }
 
-extension ExtEnumExifType on EnumExifType {
+extension ExtEnumExifType on EnumExifDataType {
   /// Convert to int value of Exif data type.
   int toInt() {
     switch (this) {
-      case EnumExifType.byte:
-      case EnumExifType.byteArray:
+      case EnumExifDataType.byte:
+      case EnumExifDataType.byteArray:
         return 1;
-      case EnumExifType.asciiCodeArray:
+      case EnumExifDataType.asciiCodeArray:
         return 2;
-      case EnumExifType.short:
-      case EnumExifType.shortArray:
+      case EnumExifDataType.short:
+      case EnumExifDataType.shortArray:
         return 3;
-      case EnumExifType.long:
-      case EnumExifType.longArray:
+      case EnumExifDataType.long:
+      case EnumExifDataType.longArray:
         return 4;
-      case EnumExifType.rational:
-      case EnumExifType.rationalArray:
+      case EnumExifDataType.rational:
+      case EnumExifDataType.rationalArray:
         return 5;
-      case EnumExifType.undefined:
+      case EnumExifDataType.undefined:
         return 7;
-      case EnumExifType.slong:
-      case EnumExifType.slongArray:
+      case EnumExifDataType.slong:
+      case EnumExifDataType.slongArray:
         return 9;
-      case EnumExifType.srational:
-      case EnumExifType.srationalArray:
+      case EnumExifDataType.srational:
+      case EnumExifDataType.srationalArray:
         return 10;
-      case EnumExifType.float:
-      case EnumExifType.floatArray:
+      case EnumExifDataType.float:
+      case EnumExifDataType.floatArray:
         return 11;
-      case EnumExifType.double:
-      case EnumExifType.doubleArray:
+      case EnumExifDataType.double:
+      case EnumExifDataType.doubleArray:
         return 12;
     }
   }

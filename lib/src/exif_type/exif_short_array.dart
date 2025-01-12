@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 import '../../simple_exif.dart';
 
-class ExifShortArray extends ExifType {
+class ExifShortArray extends ExifDataType {
   final List<ExifShort> value;
 
   /// * [value] : The data.
-  ExifShortArray(this.value) : super(EnumExifType.shortArray);
+  ExifShortArray(this.value) : super(EnumExifDataType.shortArray);
 
   @override
   String toString() {
@@ -21,7 +21,7 @@ class ExifShortArray extends ExifType {
   }
 
   @override
-  Uint8List? toUint8List({Endian endian = Endian.big}) {
+  Uint8List toUint8List({Endian endian = Endian.big}) {
     ByteData byteData = ByteData(value.length * 2);
     for (int i = 0; i < value.length; i++) {
       byteData.setUint16(i * 2, value[i].value, endian);
@@ -33,5 +33,14 @@ class ExifShortArray extends ExifType {
   @override
   int count() {
     return value.length;
+  }
+
+  @override
+  ExifDataType deepCopy() {
+    List<ExifShort> r = [];
+    for (ExifShort i in value) {
+      r.add(i.deepCopy() as ExifShort);
+    }
+    return ExifShortArray(r);
   }
 }

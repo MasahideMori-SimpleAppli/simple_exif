@@ -1,6 +1,4 @@
 import 'dart:typed_data';
-import 'package:test_all/src/enum/enum_ifd_type.dart';
-
 import '../../simple_exif.dart';
 
 /// (en) This is an inner class that analyzes, stores and
@@ -11,8 +9,8 @@ import '../../simple_exif.dart';
 /// このクラスは、このパッケージ内からのみ呼び出されます。
 class ExifHandler {
   // key : tagID.
-  // value : tag data class.
-  final Map<int, ExifType> _exifData = {};
+  // value : tag class.
+  final Map<int, ExifTag> _tags = {};
 
   // 定数定義
   static const int markerLength = 2; // セグメントマーカーの長さ (例: 0xFFE1)
@@ -53,17 +51,17 @@ class ExifHandler {
       int segmentLength = _readUint16(bytes, offset + 2, true);
       // セグメント長がファイルサイズを超えないか確認
       if (offset + markerLength + segmentLength > bytes.length) {
-        // 不正なセグメント長の場合は終了する。
-        return;
+        // 不正なセグメント長の場合はエラーを出す。
+        throw ArgumentError('This is broken JPEG file.');
       }
-      // APP1セグメントを探す
+      // APP1セグメント（このプログラムでは1個目のみに対応している）を探す
       if (marker == 0xE1) {
         // APP1セグメントのExifヘッダーを確認
         final exifHeader = bytes.sublist(
             offset + markerLength + segmentLengthBytes,
             offset + markerLength + segmentLengthBytes + exifIdentifierLength);
         if (String.fromCharCodes(exifHeader) == 'Exif\x00\x00') {
-          // Exifデータを解析して終了する
+          // Exifデータ（TIFFヘッダーから）を解析して終了する
           _parseExifSegment(bytes.sublist(offset + tiffHeaderOffset,
               offset + tiffHeaderOffset + segmentLength - segmentLengthBytes));
           return;
@@ -76,7 +74,8 @@ class ExifHandler {
     return;
   }
 
-  /// Exifセグメントを解析し、_exifDataに格納する
+  /// Exifセグメントを解析し、_exifDataに格納する。
+  /// なお、0th IFDのみを解析する。
   /// * [exifSegment] : Exifセグメント全体（Exif情報のみ）のバイトコード。
   void _parseExifSegment(Uint8List exifSegment) {
     // TIFFヘッダーの確認
@@ -104,25 +103,25 @@ class ExifHandler {
     for (int i = 0; i < numberOfEntries; i++) {
       final int entryOffset = offset + 2 + (i * 12);
       final int tagID = _readTagID(exifSegment, entryOffset, isBigEndian);
-      ExifType? tagValue =
-          _readTagValue(exifSegment, entryOffset, isBigEndian, tagID);
+      ExifDataType? tagValue =
+          _readTagValue(exifSegment, entryOffset, isBigEndian, tagID, ifdType);
       // タグを格納
       if (tagValue != null) {
-        _exifData[tagID] = tagValue;
+        _tags[tagID] = ExifTag.custom(tagID, tagValue, ifdType);
       }
       // Exif IFD Pointer を確認し、存在する場合は追加処理を行うために位置をバッファする。
       if (tagID == 34665) {
         exifIFDOffset =
             _readUint32(exifSegment, entryOffset + 8, isBigEndian); // ポインター取得
       }
+      // Interoperability (IO) IFD Pointer を確認し、存在する場合は追加処理を行うために位置をバッファする。
+      if (tagID == 40965) {
+        interoperabilityOffset =
+            _readUint32(exifSegment, entryOffset + 8, isBigEndian); // ポインター取得
+      }
       // GPS Info IFD Pointer を確認し、存在する場合は追加処理を行うために位置をバッファする。
       if (tagID == 34853) {
         gpsInfoOffset =
-            _readUint32(exifSegment, entryOffset + 8, isBigEndian); // ポインター取得
-      }
-      // Interoperability IFD Pointer を確認し、存在する場合は追加処理を行うために位置をバッファする。
-      if (tagID == 40965) {
-        interoperabilityOffset =
             _readUint32(exifSegment, entryOffset + 8, isBigEndian); // ポインター取得
       }
     }
@@ -198,8 +197,8 @@ class ExifHandler {
   /// * [entryOffset] : タグの格納されているオフセット。
   /// * [isBigEndian] : TIFFのエンディアン情報。
   /// * [tagID] : tag id.
-  ExifType? _readTagValue(
-      Uint8List exifSegment, int entryOffset, bool isBigEndian, int tagID) {
+  ExifDataType? _readTagValue(Uint8List exifSegment, int entryOffset,
+      bool isBigEndian, int tagID, EnumIFDType ifdType) {
     try {
       // データ型を取得 (2バイト)
       final int dataType =
@@ -337,14 +336,14 @@ class ExifHandler {
   ///
   /// * [tagID] : The target tag id.
   bool containsOf(int tagID) {
-    return _exifData.containsKey(tagID);
+    return _tags.containsKey(tagID);
   }
 
   /// (en) Gets a list of all tag IDs.
   ///
   /// (ja) 全てのタグIDをリストで取得します。
   List<int> getAllTagIDs() {
-    return _exifData.keys.toList();
+    return _tags.keys.toList();
   }
 
   /// (en) Returns the specified tag.
@@ -355,8 +354,8 @@ class ExifHandler {
   ///
   /// * [tagID] : Target tag id.
   ExifTag? getTag(int tagID) {
-    if (_exifData.containsKey(tagID)) {
-      return ExifTag.custom(tagID, _exifData[tagID]!);
+    if (_tags.containsKey(tagID)) {
+      return _tags[tagID]!;
     } else {
       return null;
     }
@@ -368,7 +367,7 @@ class ExifHandler {
   ///
   /// * [tag] : For type safety, pass overriding data in a dedicated class.
   void updateTag(ExifTag tag) {
-    _exifData[tag.id] = tag.value;
+    _tags[tag.id] = tag;
   }
 
   /// (en) Remove the content of the specified tag.
@@ -377,99 +376,169 @@ class ExifHandler {
   ///
   /// * [tagID] : The tag id.
   void removeTag(int tagID) {
-    _exifData.remove(tagID);
+    _tags.remove(tagID);
   }
 
   /// (en) Delete all Exif data.
   ///
   /// (ja) 全てのExif情報を削除します。
   void deleteExifData() {
-    _exifData.clear();
+    _tags.clear();
   }
 
-  /// 現在保持しているExifデータをUint8List形式に戻します。
-  /// つまり、このクラス内に格納された情報からExifセグメントを再構成します。
-  /// 戻り値にはExif識別子とTiffデータのみが含まれ、APP1マーカーやセグメント長は含まれません。
-  /// * [endian] : Endianness when writing.
-  Uint8List? toBytes({Endian endian = Endian.big}) {
-    if (_exifData.isEmpty) {
-      return null; // データがない場合はnullを返す
-    }
-    // 1. TIFFヘッダーを作成
-    final tiffHeader = BytesBuilder();
-    tiffHeader
-        .add(endian == Endian.big ? [0x4D, 0x4D] : [0x49, 0x49]); // MMまたはII
-    tiffHeader
-        .add(endian == Endian.big ? [0x00, 0x2A] : [0x2A, 0x00]); // マジックナンバー
-    tiffHeader.add([0x00, 0x00, 0x00, 0x08]); // IFDの開始位置
+  // /// TIFFタグのうち、Exif、IO、GPSのオフセットを除くタグを取得します。
+  // List<ExifTag> _getTiffTagsWithoutOffset() {
+  //   List<ExifTag> r = [];
+  //   for (ExifTag i in _tags.values) {
+  //     if (i.ifdType == EnumIFDType.tiff) {
+  //       // Exif IFD Pointer, Interoperability IFD Pointer, GPS Info IFD Pointer
+  //       if (i.id == 34665 || i.id == 40965 || i.id == 34853) {
+  //         continue;
+  //       }
+  //       else {
+  //         r.add(i);
+  //       }
+  //     }
+  //   }
+  //   return r;
+  // }
+  //
+  // List<ExifTag> _getExifTags() {
+  //   List<ExifTag> r = [];
+  //   for (ExifTag i in _tags.values) {
+  //     if (i.ifdType == EnumIFDType.exif) {
+  //       r.add(i);
+  //     }
+  //   }
+  //   return r;
+  // }
+  //
+  // /// IO Tag
+  // List<ExifTag> _getInteroperabilityTags() {
+  //   List<ExifTag> r = [];
+  //   for (ExifTag i in _tags.values) {
+  //     if (i.ifdType == EnumIFDType.interoperability) {
+  //       r.add(i);
+  //     }
+  //   }
+  //   return r;
+  // }
+  //
+  // List<ExifTag> _getGPSTags() {
+  //   List<ExifTag> r = [];
+  //   for (ExifTag i in _tags.values) {
+  //     if (i.ifdType == EnumIFDType.gps) {
+  //       r.add(i);
+  //     }
+  //   }
+  //   return r;
+  // }
 
-    // 2. 0th IFDエントリを作成
-    final ifdEntries = BytesBuilder();
-    final dataBlock = BytesBuilder();
-    int dataOffset = tiffHeader.length +
-        2 +
-        _exifData.length * 12 +
-        4; // TIFFヘッダー + エントリ数 + IFDエントリ + 終端
-
-    int? exifIFDPointerOffset;
-    for (MapEntry<int, ExifType> entry in _exifData.entries) {
-      final int tagID = entry.key;
-      final ExifType tagValue = entry.value;
-      final Uint8List? tagBytes = tagValue.toUint8List(endian: endian);
-
-      if (tagID == 0x8769) {
-        // Exif IFD Pointerのオフセットを計算
-        exifIFDPointerOffset = dataOffset;
-      } else if (tagBytes != null) {
-        // 通常のタグエントリ
-        final int dataType = tagValue.dataType.toInt();
-        final int dataCount =
-            tagBytes.length ~/ ExifHandler.dataTypeSize[dataType]!;
-        ifdEntries.add(_writeUint16(tagID)); // タグID
-        ifdEntries.add(_writeUint16(dataType)); // データ型
-        ifdEntries.add(_writeUint32(dataCount)); // データ数
-        if (tagBytes.length <= 4) {
-          ifdEntries.add(tagBytes); // 値を直接書き込む
-          ifdEntries.add(Uint8List(4 - tagBytes.length)); // パディング
-        } else {
-          ifdEntries.add(_writeUint32(dataOffset)); // データオフセット
-          dataBlock.add(tagBytes); // データを後ろに追加
-          dataOffset += tagBytes.length; // オフセットを更新
-        }
-      }
-    }
-
-    // TODO IFDセグメントの種類ごとに保存位置を調整しながら保存する。
-
-    // 3. Exif IFDセグメントを作成
-    if (exifIFDPointerOffset != null) {
-      final exifIfdEntries = BytesBuilder();
-      // TODO 必要なExif IFDエントリを追加する処理
-      // ...
-
-      // Exif IFDをデータブロックに追加
-      dataBlock.add(exifIfdEntries.toBytes());
-    }
-
-    // 4. TIFFデータを結合して返す
-    final tiffData = BytesBuilder();
-    tiffData.add(tiffHeader.toBytes());
-    tiffData.add(_writeUint16(_exifData.length)); // IFDエントリ数
-    tiffData.add(ifdEntries.toBytes());
-    tiffData.add(dataBlock.toBytes());
-
-    final exifSegment = BytesBuilder();
-    exifSegment.add(Uint8List.fromList('Exif\x00\x00'.codeUnits)); // Exif識別子
-    exifSegment.add(tiffData.toBytes());
-
-    return exifSegment.toBytes();
-  }
-
-  Uint8List _writeUint16(int value) {
-    return Uint8List(2)..buffer.asByteData().setUint16(0, value, Endian.big);
-  }
-
-  Uint8List _writeUint32(int value) {
-    return Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.big);
-  }
+  //
+  // 作成中。
+  //
+  // /// 現在保持しているExifデータをUint8List形式に戻します。
+  // /// つまり、このクラス内に格納された情報からExifセグメントを再構成します。
+  // /// 戻り値にはExif識別子とTiffデータのみが含まれ、APP1マーカーやセグメント長は含まれません。
+  // /// * [endian] : Endianness when writing.
+  // Uint8List? toBytes({Endian endian = Endian.big}) {
+  //   if (_tags.isEmpty) {
+  //     return null; // データがない場合はnullを返す
+  //   }
+  //   // 1. TIFFヘッダーを作成
+  //   final tiffHeader = BytesBuilder();
+  //   tiffHeader
+  //       .add(endian == Endian.big ? [0x4D, 0x4D] : [0x49, 0x49]); // MMまたはII
+  //   tiffHeader
+  //       .add(endian == Endian.big ? [0x00, 0x2A] : [0x2A, 0x00]); // マジックナンバー
+  //   tiffHeader.add([0x00, 0x00, 0x00, 0x08]); // IFDの開始位置
+  //
+  //   // 書き込み用のビルダーを準備。
+  //   final ifdData = BytesBuilder();
+  //
+  //   // 各タグを取得
+  //   final List<ExifTag> tiffTags = _getTiffTagsWithoutOffset();
+  //   final List<ExifTag> exifTags = _getExifTags();
+  //   final List<ExifTag> interoperabilityTags = _getInteroperabilityTags();
+  //   final List<ExifTag> gpsTags = _getGPSTags();
+  //
+  //   // 追加のIFDがある場合はその分のタグ追加数を事前に計算する。
+  //   int tiffTagCount = tiffTags.length;
+  //   if (exifTags.isNotEmpty) {
+  //     tiffTagCount += 1;
+  //   }
+  //   if (interoperabilityTags.isNotEmpty) {
+  //     tiffTagCount += 1;
+  //   }
+  //   if (gpsTags.isNotEmpty) {
+  //     tiffTagCount += 1;
+  //   }
+  //
+  //   // 各データのバッファ先を準備。
+  //   final tiffEntries = BytesBuilder();
+  //   final tiffDataBlock = BytesBuilder();
+  //   // 最初のオフセットを設定。
+  //   int tiffDataOffset = tiffHeader.length + 2 + tiffTagCount * 12 +
+  //       4; // TIFFヘッダー + エントリ数 + タグエントリの長さ + 終端
+  //
+  //   // 2. 0th IFDエントリを作成
+  //   if (tiffTags.isNotEmpty) {
+  //     for (ExifTag i in tiffTags) {
+  //       final int dataType = i.value.dataType.toInt();
+  //       final Uint8List tagBytes = i.value.toUint8List(endian: endian);
+  //       final int dataCount = tagBytes.length ~/
+  //           ExifHandler.dataTypeSize[dataType]!;
+  //       // TIFFエントリの作成
+  //       tiffEntries.add(_writeUint16(i.id)); // タグID
+  //       tiffEntries.add(_writeUint16(dataType)); // データ型
+  //       tiffEntries.add(_writeUint32(dataCount)); // データ数
+  //       if (tagBytes.length <= 4) {
+  //         // データが4バイト以内の場合はタグに直接埋め込む
+  //         tiffEntries.add(tagBytes); // 値を直接書き込む
+  //         tiffEntries.add(Uint8List(4 - tagBytes.length)); // パディング
+  //       } else {
+  //         // データが4バイトより大きい場合はオフセットを追加
+  //         tiffEntries.add(_writeUint32(tiffDataOffset)); // データオフセット
+  //         tiffDataBlock.add(tagBytes); // 実際のデータを後ろに追加
+  //         tiffDataOffset += tagBytes.length; // オフセット更新
+  //       }
+  //     }
+  //   }
+  //
+  //   // 3. Exif IFDエントリを作成
+  //   if (exifTags.isNotEmpty) {
+  //     // TIFFタグにオフセットを追加。
+  //     ExifTag exifOffset = ExifTag.custom(
+  //         34665, ExifLong(tiffDataOffset), EnumIFDType.tiff);
+  //     final int eoDataType = exifOffset.value.dataType.toInt();
+  //     final Uint8List eoTagBytes = exifOffset.value.toUint8List(endian: endian);
+  //     final int eoDataCount = eoTagBytes.length ~/
+  //         ExifHandler.dataTypeSize[eoDataType]!;
+  //     tiffEntries.add(_writeUint16(exifOffset.id)); // タグID
+  //     tiffEntries.add(_writeUint16(eoDataType)); // データ型
+  //     tiffEntries.add(_writeUint32(eoDataCount)); // データ数
+  //
+  //   }
+  //
+  //   // ifdDataに追加
+  //   ifdData.add(tiffHeader.toBytes()); // TIFFヘッダーを追加。
+  //   ifdData.add(_writeUint16(tiffTagCount)); // TIFFタグ（エントリ）の数を追加
+  //   ifdData.add(tiffEntries.toBytes()); // TIFFエントリを追加
+  //   ifdData.add(tiffDataBlock.toBytes()); // データブロックを追加
+  //
+  //   final exifSegment = BytesBuilder();
+  //   exifSegment.add(Uint8List.fromList('Exif\x00\x00'.codeUnits)); // Exif識別子
+  //   exifSegment.add(ifdData.toBytes());
+  //   return exifSegment.toBytes();
+  // }
+  //
+  // Uint8List _writeUint16(int value) {
+  //   return Uint8List(2)
+  //     ..buffer.asByteData().setUint16(0, value, Endian.big);
+  // }
+  //
+  // Uint8List _writeUint32(int value) {
+  //   return Uint8List(4)
+  //     ..buffer.asByteData().setUint32(0, value, Endian.big);
+  // }
 }

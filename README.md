@@ -8,27 +8,28 @@ This package is currently under development.
 Please note that it will not be available until development is complete.  
 
 ## Overview
-This is a package for reading and modifying the Exif information of JPEG images.  
-This package has been adapted to work with Flutter Web.  
+This is a package for reading Exif information from JPEG images.
+This package has been adapted to work with Flutter Web.
 
 This package implements the required or most frequently used parts of the Exif 2.3 standard.  
 Note that this package does not cover additional information from other formats such as PNG,
 as they are not part of the Exif standard.  
 
+The current implementation status is as follows.  
+IFD rewriting is also under development and may be supported in the future.  
+
+- [x] Read the 0th IFD contents (TIFF)
+- [x] Read the 0th IFD contents (Exif)
+- [x] Read the 0th IFD contents (Interoperability)
+- [x] Read the 0th IFD contents (GPS)
+- [ ] Rewrite, add, delete the 0th IFD contents (TIFF)
+- [ ] Rewrite, add, delete the 0th IFD contents (Exif)
+- [ ] Rewrite, add, delete the 0th IFD contents (Interoperability)
+- [ ] Rewrite, add, delete the 0th IFD contents (GPS)
+- [ ] Delete all Exif information
+
 ## Usage
 Please check out the Examples tab in pub.dev.
-
-This package reads Exif data as ExifTag classes and also supports overwriting Exif data with the appropriate ExifTag classes.
-
-```dart
-
-```
-
-You can also erase Exif data in bulk.
-
-```dart
-
-```
 
 ## Support
 Basically no support.  
@@ -46,7 +47,7 @@ However, versions less than 1.0.0 may change the file structure regardless of th
     - X.X.C
 
 ## License
-Copyright 2024 Masahide Mori
+Copyright 2025 Masahide Mori
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

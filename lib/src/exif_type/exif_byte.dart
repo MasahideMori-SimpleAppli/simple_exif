@@ -2,11 +2,11 @@ import 'dart:typed_data';
 import '../../simple_exif.dart';
 
 /// BYTE (0〜255)
-class ExifByte extends ExifType {
+class ExifByte extends ExifDataType {
   final int value;
 
   /// * [value] : The data.
-  ExifByte(this.value) : super(EnumExifType.byte) {
+  ExifByte(this.value) : super(EnumExifDataType.byte) {
     if (value < 0 || value > 255) {
       throw RangeError('Value must be between 0 and 255: $value');
     }
@@ -16,9 +16,14 @@ class ExifByte extends ExifType {
   String toString() => value.toString();
 
   @override
-  Uint8List? toUint8List({Endian endian = Endian.big}) {
+  Uint8List toUint8List({Endian endian = Endian.big}) {
     ByteData byteData = ByteData(1);
     byteData.setUint8(0, value);
     return byteData.buffer.asUint8List();
+  }
+
+  @override
+  ExifDataType deepCopy() {
+    return ExifByte(value);
   }
 }

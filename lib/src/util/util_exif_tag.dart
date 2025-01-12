@@ -8,8 +8,8 @@ class UtilExifTag {
   /// TIFF6.0, Exif2.3 and GPS tag IDs are supported.
   /// If any other tag ID is specified, null is returned.
   static String? getTagNameFromID(int id) {
-    if (_reversedTagNameToIDofTIFF6_0.containsKey(id)) {
-      return _reversedTagNameToIDofTIFF6_0[id];
+    if (_reversedTagNameToIDofTIFF6_0PlusIFDOffsets.containsKey(id)) {
+      return _reversedTagNameToIDofTIFF6_0PlusIFDOffsets[id];
     }
     if (_reversedTagNameToIDofExif2_3.containsKey(id)) {
       return _reversedTagNameToIDofExif2_3[id];
@@ -22,7 +22,7 @@ class UtilExifTag {
 
   // key : tag name.
   // value : tag id (dec).
-  static final Map<String, int> _tagNameToIDofTIFF6_0 = {
+  static final Map<String, int> _tagNameToIDofTIFF6_0PlusIFDOffsets = {
     "ImageWidth": 256,
     "ImageLength": 257,
     "BitsPerSample": 258,
@@ -52,13 +52,18 @@ class UtilExifTag {
     "Model": 272,
     "Software": 305,
     "Artist": 315,
-    "Copyright": 33432
+    "Copyright": 33432,
+    // Tiff領域にある、参照用のタグも追加する。
+    "ExifIFDPointerOffset": 34665,
+    "interoperabilityIFDPointerOffset": 40965,
+    "GPSInfoIFDPointer": 34853,
   };
 
   // key : tag id (dec).
   // value : tag name.
-  static final Map<int, String> _reversedTagNameToIDofTIFF6_0 = {
-    for (var entry in _tagNameToIDofTIFF6_0.entries) entry.value: entry.key
+  static final Map<int, String> _reversedTagNameToIDofTIFF6_0PlusIFDOffsets = {
+    for (var entry in _tagNameToIDofTIFF6_0PlusIFDOffsets.entries)
+      entry.value: entry.key
   };
 
   // key : tag name.
