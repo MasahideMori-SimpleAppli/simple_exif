@@ -1,6 +1,6 @@
 name: simple_exif
 description: "A web-enabled Flutter package for reading JPEG Exif information."
-version: 0.0.1
+version: 0.0.2
 repository: https://github.com/MasahideMori-SimpleAppli/simple_exif
 
 environment:
@@ -15,3 +15,4 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  image_picker: ^1.1.2

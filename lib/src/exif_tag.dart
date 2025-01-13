@@ -483,6 +483,11 @@ class ExifTag {
     };
   }
 
+  /// Return the deep copied this object.
+  ExifTag deepCopy() {
+    return ExifTag.custom(id, value.deepCopy(), ifdType);
+  }
+
   @override
   String toString() => toDict().toString();
 }

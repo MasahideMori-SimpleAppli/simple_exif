@@ -348,9 +348,11 @@ class ExifHandler {
 
   /// (en) Returns the specified tag.
   /// If it doesn't exist, null is returned.
+  /// Note that the data returned is not a copy.
   ///
   /// (ja) 指定したタグを返します。
   /// 存在しない場合はnullが返されます。
+  /// 返されるデータはコピーではないので注意してください。
   ///
   /// * [tagID] : Target tag id.
   ExifTag? getTag(int tagID) {

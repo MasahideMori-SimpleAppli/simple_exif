@@ -18,6 +18,18 @@ class ExifReader {
     return _handler.getAllTagIDs();
   }
 
+  /// (en) Gets a copy of all tags in a list.
+  ///
+  /// (ja) 全てのタグのコピーをリストで取得します。
+  List<ExifTag> getCopiedAllTags() {
+    List<ExifTag> r = [];
+    List<int> allIDs = getAllTagIDs();
+    for (int i in allIDs) {
+      r.add(_handler.getTag(i)!.deepCopy());
+    }
+    return r;
+  }
+
   /// (en) Returns true if the specified tag exists.
   ///
   /// (ja) 指定したタグが存在するならtrueを返します。
@@ -29,9 +41,11 @@ class ExifReader {
 
   /// (en) Returns the specified tag.
   /// If it doesn't exist, null is returned.
+  /// Note that the data returned is not a copy.
   ///
   /// (ja) 指定したタグを返します。
   /// 存在しない場合はnullが返されます。
+  /// 返されるデータはコピーではないので注意してください。
   ///
   /// * [tagID] : Target tag id.
   ExifTag? getTag(int tagID) {

@@ -3,10 +3,6 @@
 (en)Japanese ver is [here](https://github.com/MasahideMori-SimpleAppli/simple_exif/blob/main/README_JA.md).  
 (ja)この解説の日本語版は[ここ](https://github.com/MasahideMori-SimpleAppli/simple_exif/blob/main/README_JA.md)にあります。
 
-## Note
-This package is currently under development.  
-Please note that it will not be available until development is complete.  
-
 ## Overview
 This is a package for reading Exif information from JPEG images.
 This package has been adapted to work with Flutter Web.
